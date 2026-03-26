@@ -90,7 +90,7 @@ export class CodexAdapter implements AgentAdapter {
 
   private async runOpenClaw(command: CommandRecord, external: ExternalDispatch) {
     const cli = this.resolveOpenClawCli();
-    const workspace = process.env.OPENCLAW_WORKSPACE ?? process.env.CODEX_WORKSPACE ?? external.projectRoot ?? getTargetProjectRoot();
+    const workspace = external.projectRoot ?? process.env.OPENCLAW_WORKSPACE ?? process.env.CODEX_WORKSPACE ?? getTargetProjectRoot();
     const agentId = this.getAgentId();
     const model = process.env.OPENCLAW_MODEL ?? "openai-codex/gpt-5.4";
     const thinking = process.env.OPENCLAW_THINKING ?? "medium";

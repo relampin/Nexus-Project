@@ -37,7 +37,7 @@ Telegram nao faz mais parte do fluxo oficial.
 1. copie a pasta do Nexus para a maquina nova
 2. rode `npm install`
 3. copie `.env.example` para `.env` se quiser customizar
-4. ajuste `TARGET_PROJECT_ROOT` se o projeto alvo estiver fora da pasta do Nexus
+4. ajuste a raiz fixa da plataforma (`NEXUS_PLATFORM_ROOT` ou `TARGET_PROJECT_ROOT`) apenas uma vez, se o Nexus principal estiver fora da pasta atual
 5. rode `npm run build`
 6. rode `npm start`
 7. abra `http://localhost:3000/app`
@@ -102,6 +102,14 @@ Se o CDP nao estiver disponivel, o Nexus continua funcionando, mas os jobs do An
 - `data/`: estado local do Nexus
 - `bridge/`: handoffs gerados para agentes externos
 - `log/`: logs do Antigravity por job
+
+## Regra de raiz do Nexus
+
+- a raiz fixa da plataforma pode ser definida em `NEXUS_PLATFORM_ROOT`
+- `TARGET_PROJECT_ROOT` continua funcionando como alias legado
+- essa raiz nao deve ser trocada para acompanhar o projeto ativo
+- cada projeto do painel deve carregar seu proprio `settings.projectRoot`
+- ao selecionar um projeto no painel, o Nexus passa a usar automaticamente esse `projectRoot` para jobs, bridge, leitura de arquivos e integracao
 
 ## Documentacao canonica
 

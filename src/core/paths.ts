@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 
 export function getNexusHome() {
@@ -12,19 +12,14 @@ export function getNexusHome() {
 }
 
 export function getTargetProjectRoot() {
-  const activeProjectRoot = readActiveProjectRoot();
-
-  if (activeProjectRoot) {
-    ensureDirectory(activeProjectRoot);
-    return activeProjectRoot;
-  }
-
+  const configuredPlatformRoot = process.env.NEXUS_PLATFORM_ROOT?.trim();
   const configured = process.env.TARGET_PROJECT_ROOT?.trim();
+  const preferredRoot = configuredPlatformRoot || configured;
 
-  if (configured) {
-    const target = isAbsolute(configured)
-      ? configured
-      : resolve(getNexusHome(), configured);
+  if (preferredRoot) {
+    const target = isAbsolute(preferredRoot)
+      ? preferredRoot
+      : resolve(getNexusHome(), preferredRoot);
 
     ensureDirectory(target);
     return target;
@@ -60,37 +55,6 @@ export function resolveProjectPath(...segments: string[]) {
 function ensureDirectory(directory: string) {
   if (!existsSync(directory)) {
     mkdirSync(directory, { recursive: true });
-  }
-}
-
-function readActiveProjectRoot() {
-  const filePath = join(getNexusHome(), "data", "projects.json");
-
-  if (!existsSync(filePath)) {
-    return undefined;
-  }
-
-  try {
-    const raw = readFileSync(filePath, "utf-8");
-    const parsed = JSON.parse(raw) as {
-      activeProjectId?: string;
-      workspaces?: Array<{
-        project?: { id?: string };
-        settings?: { projectRoot?: string };
-      }>;
-    };
-    const activeWorkspace = parsed.workspaces?.find((workspace) => workspace.project?.id === parsed.activeProjectId);
-    const configuredRoot = activeWorkspace?.settings?.projectRoot?.trim();
-
-    if (!configuredRoot) {
-      return undefined;
-    }
-
-    return isAbsolute(configuredRoot)
-      ? configuredRoot
-      : resolve(getNexusHome(), configuredRoot);
-  } catch {
-    return undefined;
   }
 }
 
