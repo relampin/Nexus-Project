@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium Dog Food Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  
+  <!-- Navigation Header -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <span class="logo-icon">🐾</span>
+        <span class="logo-text">Premium<span class="highlight">Paws</span></span>
+      </div>
+      <div class="nav-actions">
+        <button id="cart-btn" class="cart-btn">
+          🛒 <span id="cart-count">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="app-content">
+    <!-- Views injected via JS -->
+  </main>
+
+  <!-- Cart Overlay -->
+  <div id="cart-overlay" class="overlay hidden">
+    <div class="cart-drawer">
+      <div class="drawer-header">
+        <h2>Seu Carrinho</h2>
+        <button id="close-cart-btn" class="close-btn">&times;</button>
+      </div>
+      <div id="cart-items" class="cart-items">
+        <!-- Items injected via JS -->
+      </div>
+      <div class="cart-footer">
+        <div class="cart-summary">
+          <div class="summary-line">
+            <span>Subtotal</span>
+            <span id="cart-subtotal">R$ 0,00</span>
+          </div>
+          <div class="summary-line">
+            <span>Frete</span>
+            <span id="cart-shipping">Calcular no checkout</span>
+          </div>
+          <div class="summary-line total">
+            <span>Total Estimado</span>
+            <span id="cart-total">R$ 0,00</span>
+          </div>
+        </div>
+        <button id="checkout-btn" class="btn-primary full-width" disabled>Finalizar Compra ✨</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>
