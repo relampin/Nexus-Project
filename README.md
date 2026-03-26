@@ -24,6 +24,7 @@ Telegram nao faz mais parte do fluxo oficial.
 - monitora a sessao visivel do Antigravity via CDP
 - fecha jobs por log, review e validacao automatica
 - expõe um painel em tempo real com WebSocket e fallback local
+- oferece um kit de outra maquina com prompts-base e documentacao canonica direto no painel
 
 ## Requisitos
 
@@ -82,6 +83,7 @@ Se o CDP nao estiver disponivel, o Nexus continua funcionando, mas os jobs do An
 - `GET /commands`
 - `GET /commands/:id`
 - `POST /ui/dispatch`
+- `GET /ui/bootstrap-kit`
 - `GET /diagnostics/audit`
 - `POST /diagnostics/audit/run`
 - `POST /worker/process`

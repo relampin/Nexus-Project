@@ -927,6 +927,32 @@ textarea {
   border: 1px solid rgba(255,255,255,0.06);
   background: rgba(0,0,0,0.18);
 }
+.bootstrap-kit-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.bootstrap-kit-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+}
+.bootstrap-kit-copy {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.bootstrap-kit-path {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  opacity: 0.85;
+}
 .hub-copy, .search-meta {
   color: var(--text-muted);
   line-height: 1.6;
@@ -1589,6 +1615,7 @@ let globalState = {
     activeProject: null,
     stats: {},
     activity: [],
+    bootstrapKit: null,
     commandExpansion: {},
     fileExpansion: {},
     logExpansion: {}
@@ -1856,6 +1883,13 @@ function buildDashboardShell() {
                         <textarea id="f-text" placeholder="Descreva a tarefa ou comando..."></textarea>
                         <button class="btn-primary full-width" type="submit">Enviar comando</button>
                     </form>
+                </div>
+                <div class="glass-panel" id="bootstrapKitPanel">
+                    <div class="panel-header"><h2>Kit de Outra Maquina</h2></div>
+                    <div id="bootstrapKitMeta" class="hub-copy">Carregando prompts e documentacao canonica...</div>
+                    <div id="bootstrapKitList" class="bootstrap-kit-stack" style="margin-top: 1rem;">
+                        <div class="empty-state">Os arquivos de bootstrap vao aparecer aqui.</div>
+                    </div>
                 </div>
                 <div class="glass-panel">
                     <div class="panel-header"><h2>Fila global</h2></div>
@@ -2353,6 +2387,7 @@ async function init() {
     updateRealtimeStatus(false, 'Carregando painel...');
     try {
         await refreshBootstrap();
+        await hydrateBootstrapKit();
     } catch(e) {
         console.error("Failed to bootstrap UX", e);
     } finally {
@@ -2370,6 +2405,26 @@ async function refreshBootstrap() {
     if (!res.ok) throw new Error("HTTP error " + res.status);
     const data = await res.json();
     handleSnapshot(data);
+}
+
+async function hydrateBootstrapKit(force = false) {
+    if (globalState.bootstrapKit && !force) {
+        renderBootstrapKit();
+        return;
+    }
+
+    const result = await fetchJsonMaybe(`${API_BASE}/ui/bootstrap-kit`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+    });
+
+    if (!result.ok) {
+        renderBootstrapKit();
+        return;
+    }
+
+    globalState.bootstrapKit = result.data || { items: [] };
+    renderBootstrapKit();
 }
 
 function cleanupLiveTransport() {
@@ -2551,6 +2606,7 @@ function handleSnapshot(data) {
         runRenderStep('manualAssist', () => renderManualAssist(data.manualAssist));
     }
     runRenderStep('audit', () => renderAudit(data.audit));
+    runRenderStep('bootstrapKit', () => renderBootstrapKit());
     Promise.resolve(hydrateProjectDetails(globalState.activeProject?.project?.id)).catch((error) => {
         console.error('Falha ao hidratar detalhes do projeto', error);
         projectDetailsLoadedFor = null;
@@ -3460,6 +3516,75 @@ function openDrawerShell(html) {
     repairVisibleText(content);
     overlay.classList.add('open');
     drawer.classList.add('open');
+}
+
+async function copyToClipboard(text, fallbackLabel = 'conteudo') {
+    try {
+        await navigator.clipboard.writeText(text);
+        return true;
+    } catch(error) {
+        console.error(`Falha ao copiar ${fallbackLabel}.`, error);
+        return false;
+    }
+}
+
+function renderBootstrapKit() {
+    const meta = document.getElementById('bootstrapKitMeta');
+    const list = document.getElementById('bootstrapKitList');
+    const kit = globalState.bootstrapKit;
+
+    if (!meta || !list) return;
+
+    if (!kit || !Array.isArray(kit.items) || !kit.items.length) {
+        meta.textContent = 'Os prompts-base e a documentacao canonica ficam disponiveis aqui para replicar o Nexus em outra maquina.';
+        list.innerHTML = '<div class="empty-state">Nenhum arquivo de bootstrap encontrado.</div>';
+        return;
+    }
+
+    meta.textContent = 'Copie os prompts-base e a documentacao canonica direto do painel. Isso acelera a subida do Nexus em outra maquina sem depender da conversa.';
+    list.innerHTML = kit.items.map((item) => `
+        <div class="bootstrap-kit-item">
+            <div class="bootstrap-kit-copy">
+                <div style="font-weight:600; color:var(--text); margin-bottom:0.2rem;">${safeHtml(item.title)}</div>
+                <div class="bootstrap-kit-path">${safeHtml(item.relativePath || '')}</div>
+            </div>
+            <button class="btn-secondary" type="button" onclick="openBootstrapKitItem('${String(item.id).replace(/'/g, '&#39;')}')">Abrir</button>
+            <button class="btn-secondary" type="button" onclick="copyBootstrapKitItem('${String(item.id).replace(/'/g, '&#39;')}')">Copiar</button>
+        </div>
+    `).join('');
+}
+
+function getBootstrapKitItem(itemId) {
+    return (globalState.bootstrapKit?.items || []).find((item) => String(item.id) === String(itemId));
+}
+
+async function copyBootstrapKitItem(itemId) {
+    const item = getBootstrapKitItem(itemId);
+    if (!item?.content) {
+        alert('Nao encontrei esse arquivo para copiar.');
+        return;
+    }
+
+    const copied = await copyToClipboard(item.content, item.title);
+    if (!copied) {
+        alert('Nao consegui copiar esse conteudo agora.');
+    }
+}
+
+function openBootstrapKitItem(itemId) {
+    const item = getBootstrapKitItem(itemId);
+    if (!item?.content) {
+        openDrawerShell('<p style="color:var(--danger);">Nao encontrei esse arquivo no bootstrap kit.</p>');
+        return;
+    }
+
+    openDrawerShell(`
+        <div style="margin-bottom:1.25rem;">
+            <h3 style="color:var(--text); font-size:1.05rem;">${safeHtml(item.title)}</h3>
+            <div style="margin-top:0.35rem; font-family:var(--font-mono); font-size:0.72rem; color:var(--text-muted);">${safeHtml(item.relativePath || '')}</div>
+        </div>
+        <pre>${escapeHtml(item.content)}</pre>
+    `);
 }
 
 async function openDrawer(id) {

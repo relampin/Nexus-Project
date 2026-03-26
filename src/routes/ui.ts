@@ -1,6 +1,23 @@
+import { existsSync, readFileSync } from "node:fs";
 import { Router } from "express";
+import { resolveNexusPath } from "../core/paths";
 import { uiDispatchSchema } from "../core/schema";
 import { IntegrationRuntime } from "../services/runtime";
+
+function readBootstrapKitItem(id: string, title: string, relativePath: string, kind: "doc" | "prompt") {
+  const absolutePath = resolveNexusPath(...relativePath.split(/[\\/]/));
+  const exists = existsSync(absolutePath);
+
+  return {
+    id,
+    title,
+    kind,
+    relativePath,
+    absolutePath,
+    exists,
+    content: exists ? readFileSync(absolutePath, "utf-8") : "",
+  };
+}
 
 export function createUiRouter(runtime: IntegrationRuntime) {
   const router = Router();
@@ -33,6 +50,20 @@ export function createUiRouter(runtime: IntegrationRuntime) {
     const limit = Number(req.query.limit ?? 20);
     res.json({
       items: runtime.logger.readRecentEntries(limit),
+    });
+  });
+
+  router.get("/bootstrap-kit", (_req, res) => {
+    const items = [
+      readBootstrapKitItem("canonical", "Arquitetura Canonica", "docs/NEXUS-CANONICAL.md", "doc"),
+      readBootstrapKitItem("setup", "Setup em Outra Maquina", "docs/SETUP-OUTRA-MAQUINA.md", "doc"),
+      readBootstrapKitItem("codex", "Prompt Base do Codex", "docs/prompts/CODEX-BOOTSTRAP.md", "prompt"),
+      readBootstrapKitItem("antigravity", "Prompt Base do Antigravity", "docs/prompts/ANTIGRAVITY-BOOTSTRAP.md", "prompt"),
+    ];
+
+    res.json({
+      generatedAt: new Date().toISOString(),
+      items,
     });
   });
 

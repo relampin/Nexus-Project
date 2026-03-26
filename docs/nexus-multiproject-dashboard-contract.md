@@ -9,6 +9,7 @@ O frontend do Nexus consome um backend que ja entrega estado agregado por projet
 ### Bootstrap do painel
 
 - `GET /ui/bootstrap`
+- `GET /ui/bootstrap-kit`
 
 Campos principais:
 
@@ -21,6 +22,17 @@ Campos principais:
 - `projectActivity`
 - `antigravitySession`
 - `manualAssist`
+
+### Bootstrap kit
+
+- `GET /ui/bootstrap-kit`
+
+Entrega os textos canônicos que o proprio painel usa para copiar:
+
+- documentacao canonica
+- setup em outra maquina
+- prompt base do Codex
+- prompt base do Antigravity
 
 ### Projetos
 
