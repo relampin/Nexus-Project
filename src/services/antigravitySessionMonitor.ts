@@ -73,10 +73,11 @@ export class AntigravitySessionMonitor {
     }
 
     this.sampleInFlight = true;
+    const trackedCommands = commands
+      .filter((command) => command.target === "antigravity" && command.status === "awaiting_external");
+    const trackedCommandIds = new Set(trackedCommands.map((command) => command.id));
 
     try {
-      const trackedCommands = commands
-        .filter((command) => command.target === "antigravity" && command.status === "awaiting_external");
       const now = new Date().toISOString();
       const visibleSession = await this.bridge.readVisibleSession();
       const visible = this.buildVisibleState(visibleSession);
@@ -105,7 +106,9 @@ export class AntigravitySessionMonitor {
         available,
         lastCheckedAt: new Date().toISOString(),
         lastError: message,
-        jobs: available ? [] : this.state.jobs,
+        jobs: available
+          ? []
+          : this.state.jobs.filter((job) => trackedCommandIds.has(job.jobId)),
       };
 
       this.persist(nextState);

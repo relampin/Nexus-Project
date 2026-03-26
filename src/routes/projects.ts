@@ -16,12 +16,12 @@ export function createProjectsRouter(runtime: IntegrationRuntime) {
   const router = Router();
 
   const handleProjectError = (error: unknown, res: Response, next: NextFunction) => {
-    if (error instanceof Error && (error.message.startsWith("Projeto nao encontrado") || error.message.startsWith("Projeto não encontrado"))) {
+    if (error instanceof Error && error.message.startsWith("Projeto não encontrado")) {
       res.status(404).json({ error: "Projeto não encontrado." });
       return;
     }
 
-    if (error instanceof Error && (error.message.startsWith("Project root nao encontrado") || error.message.startsWith("Project root não encontrado"))) {
+    if (error instanceof Error && error.message.startsWith("Project root não encontrado")) {
       res.status(400).json({ error: error.message });
       return;
     }
@@ -63,7 +63,7 @@ export function createProjectsRouter(runtime: IntegrationRuntime) {
       const updated = runtime.projects.setActiveProject(parsed.projectId);
 
       if (!updated) {
-        res.status(404).json({ error: "Projeto nao encontrado." });
+        res.status(404).json({ error: "Projeto não encontrado." });
         return;
       }
 
@@ -77,7 +77,7 @@ export function createProjectsRouter(runtime: IntegrationRuntime) {
     const snapshot = runtime.getProjectSnapshot(req.params.projectId);
 
     if (!snapshot) {
-      res.status(404).json({ error: "Projeto nao encontrado." });
+      res.status(404).json({ error: "Projeto não encontrado." });
       return;
     }
 
@@ -100,7 +100,7 @@ export function createProjectsRouter(runtime: IntegrationRuntime) {
       const updated = runtime.projects.updateProject(req.params.projectId, parsed);
 
       if (!updated) {
-        res.status(404).json({ error: "Projeto nao encontrado." });
+        res.status(404).json({ error: "Projeto não encontrado." });
         return;
       }
 
@@ -114,7 +114,7 @@ export function createProjectsRouter(runtime: IntegrationRuntime) {
     const removed = runtime.projects.deleteProject(req.params.projectId);
 
     if (!removed) {
-      res.status(404).json({ error: "Projeto nao encontrado." });
+      res.status(404).json({ error: "Projeto não encontrado." });
       return;
     }
 
@@ -151,7 +151,7 @@ export function createProjectsRouter(runtime: IntegrationRuntime) {
       const task = runtime.projects.updateTask(req.params.projectId, req.params.taskId, parsed);
 
       if (!task) {
-        res.status(404).json({ error: "Tarefa nao encontrada." });
+        res.status(404).json({ error: "Tarefa não encontrada." });
         return;
       }
 
@@ -166,7 +166,7 @@ export function createProjectsRouter(runtime: IntegrationRuntime) {
       const removed = runtime.projects.deleteTask(req.params.projectId, req.params.taskId);
 
       if (!removed) {
-        res.status(404).json({ error: "Tarefa nao encontrada." });
+        res.status(404).json({ error: "Tarefa não encontrada." });
         return;
       }
 
@@ -181,19 +181,19 @@ export function createProjectsRouter(runtime: IntegrationRuntime) {
       const snapshot = runtime.getProjectSnapshot(req.params.projectId);
 
       if (!snapshot) {
-        res.status(404).json({ error: "Projeto nao encontrado." });
+        res.status(404).json({ error: "Projeto não encontrado." });
         return;
       }
 
       const task = runtime.projects.getTask(req.params.projectId, req.params.taskId);
 
       if (!task) {
-        res.status(404).json({ error: "Tarefa nao encontrada." });
+        res.status(404).json({ error: "Tarefa não encontrada." });
         return;
       }
 
       if (task.status === "completed") {
-        res.status(400).json({ error: "Essa tarefa ja foi concluida." });
+        res.status(400).json({ error: "Essa tarefa já foi concluída." });
         return;
       }
 
@@ -252,7 +252,7 @@ export function createProjectsRouter(runtime: IntegrationRuntime) {
       const milestone = runtime.projects.updateMilestone(req.params.projectId, req.params.milestoneId, parsed);
 
       if (!milestone) {
-        res.status(404).json({ error: "Marco nao encontrado." });
+        res.status(404).json({ error: "Marco não encontrado." });
         return;
       }
 
@@ -267,7 +267,7 @@ export function createProjectsRouter(runtime: IntegrationRuntime) {
       const removed = runtime.projects.deleteMilestone(req.params.projectId, req.params.milestoneId);
 
       if (!removed) {
-        res.status(404).json({ error: "Marco nao encontrado." });
+        res.status(404).json({ error: "Marco não encontrado." });
         return;
       }
 
@@ -293,7 +293,7 @@ export function createProjectsRouter(runtime: IntegrationRuntime) {
     const snapshot = runtime.getProjectSnapshot(req.params.projectId);
 
     if (!snapshot) {
-      res.status(404).json({ error: "Projeto nao encontrado." });
+      res.status(404).json({ error: "Projeto não encontrado." });
       return;
     }
 
@@ -328,7 +328,7 @@ export function createProjectsRouter(runtime: IntegrationRuntime) {
     const snapshot = runtime.getProjectSnapshot(req.params.projectId);
 
     if (!snapshot) {
-      res.status(404).json({ error: "Projeto nao encontrado." });
+      res.status(404).json({ error: "Projeto não encontrado." });
       return;
     }
 

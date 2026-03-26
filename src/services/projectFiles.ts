@@ -18,7 +18,7 @@ export class ProjectFilesService {
     const workspace = this.projects.getProject(projectId);
 
     if (!workspace) {
-      throw new Error(`Projeto nao encontrado: ${projectId}`);
+      throw new Error(`Projeto não encontrado: ${projectId}`);
     }
 
     if (!workspace.settings.projectRoot?.trim()) {
@@ -63,11 +63,11 @@ export class ProjectFilesService {
     const workspace = this.projects.getProject(projectId);
 
     if (!workspace) {
-      throw new Error(`Projeto nao encontrado: ${projectId}`);
+      throw new Error(`Projeto não encontrado: ${projectId}`);
     }
 
     if (!workspace.settings.projectRoot?.trim()) {
-      throw new Error("Projeto ainda nao esta ligado a uma pasta real.");
+      throw new Error("Projeto ainda não está ligado a uma pasta real.");
     }
 
     const root = this.projects.getProjectRoot(projectId);

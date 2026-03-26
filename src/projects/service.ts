@@ -17,6 +17,31 @@ import {
   ProjectTaskStats,
 } from "./types";
 
+const COMMON_TEXT_REPAIRS: Array<[RegExp, string]> = [
+  [/navega(?:\?\?o|��o)/gi, "navega\u00E7\u00E3o"],
+  [/integra(?:\?\?o|��o)/gi, "integra\u00E7\u00E3o"],
+  [/valida(?:\?\?o|��o)/gi, "valida\u00E7\u00E3o"],
+  [/restaura(?:\?\?o|��o)/gi, "restaura\u00E7\u00E3o"],
+  [/descri(?:\?\?o|��o)/gi, "descri\u00E7\u00E3o"],
+  [/verifica(?:\?\?o|��o)/gi, "verifica\u00E7\u00E3o"],
+  [/conclus(?:\?\?o|��o)/gi, "conclus\u00E3o"],
+  [/execu(?:\?\?o|��o)/gi, "execu\u00E7\u00E3o"],
+  [/observa(?:\?\?o|��o)/gi, "observa\u00E7\u00E3o"],
+  [/documenta(?:\?\?o|��o)/gi, "documenta\u00E7\u00E3o"],
+  [/hist(?:\?rico|�rico)/gi, "hist\u00F3rico"],
+  [/pend(?:\?ncias|�ncias)/gi, "pend\u00EAncias"],
+  [/t(?:\?cnica|�cnica)/gi, "t\u00E9cnica"],
+  [/pr(?:\?ximo|�ximo)/gi, "pr\u00F3ximo"],
+  [/autom(?:\?tico|�tico)/gi, "autom\u00E1tico"],
+  [/pr(?:\?pria|�pria)/gi, "pr\u00F3pria"],
+  [/in(?:\?cio|�cio)/gi, "in\u00EDcio"],
+  [/(?:\?rea|�rea)/gi, "\u00E1rea"],
+  [/n\?o|n�o/gi, "n\u00E3o"],
+  [/A\?\?o|A��o/g, "A\u00E7\u00E3o"],
+  [/a\?\?o|a��o/g, "a\u00E7\u00E3o"],
+  [/aten\?\?o|aten��o/gi, "aten\u00E7\u00E3o"],
+];
+
 export class NexusProjectsService {
   private readonly store = new JsonFileStore<NexusProjectsState>(resolveNexusPath("data", "projects.json"), this.buildInitialState());
 
@@ -486,7 +511,7 @@ export class NexusProjectsService {
       autoNarrative:
         latestEntries.length > 0
           ? `Atividade recente: ${latestEntries.join(" | ")}`
-          : "Ainda não há atividade suficiente para gerar um resumo automático.",
+          : "Ainda n\u00E3o h\u00E1 atividade suficiente para gerar um resumo autom\u00E1tico.",
     };
   }
 
@@ -494,7 +519,7 @@ export class NexusProjectsService {
     const workspace = this.getProject(projectId);
 
     if (!workspace) {
-      throw new Error(`Projeto não encontrado: ${projectId}`);
+      throw new Error(`Projeto n\u00E3o encontrado: ${projectId}`);
     }
 
     return workspace;
@@ -504,7 +529,7 @@ export class NexusProjectsService {
     const workspace = state.workspaces.find((item) => item.project.id === projectId);
 
     if (!workspace) {
-      throw new Error(`Projeto não encontrado: ${projectId}`);
+      throw new Error(`Projeto n\u00E3o encontrado: ${projectId}`);
     }
 
     return workspace;
@@ -538,22 +563,28 @@ export class NexusProjectsService {
   }
 
   private repairText(value: string) {
-    if (!/[ÃÂâï�]/.test(value)) {
-      return value;
+    let repairedValue = value;
+
+    if (/[\u00C3\u00C2\u00E2\u00EF\uFFFD]/.test(repairedValue)) {
+      try {
+        const repaired = Buffer.from(repairedValue, "latin1").toString("utf8");
+        repairedValue = this.countMojibakeArtifacts(repaired) <= this.countMojibakeArtifacts(repairedValue)
+          ? repaired
+          : repairedValue;
+      } catch {
+        // Mantem o valor atual se a conversao falhar.
+      }
     }
 
-    try {
-      const repaired = Buffer.from(value, "latin1").toString("utf8");
-      return this.countMojibakeArtifacts(repaired) < this.countMojibakeArtifacts(value)
-        ? repaired
-        : value;
-    } catch {
-      return value;
+    for (const [pattern, replacement] of COMMON_TEXT_REPAIRS) {
+      repairedValue = repairedValue.replace(pattern, replacement);
     }
+
+    return repairedValue;
   }
 
   private countMojibakeArtifacts(value: string) {
-    return (value.match(/Ã.|Â.|â.|ï¿½|�/g) ?? []).length;
+    return (value.match(/[\u00C3].|[\u00C2].|[\u00E2].|[\uFFFD]/g) ?? []).length;
   }
 
   private buildInitialState(): NexusProjectsState {

@@ -449,7 +449,7 @@ pre { background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 8px; border: 1p
                                 <span id="directionHealthBadge" class="badge">STEADY</span>
                             </div>
                             <h2 id="directionHeadline" style="font-size:1.8rem; line-height:1.2; margin:0; color:var(--text); font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Sem rumo definido ainda.</h2>
-                            <div id="directionSubline" style="font-size:1rem; color:var(--text-muted); line-height:1.5; max-width: 600px;">A ideia aqui eh deixar claro onde esse projeto precisa chegar e qual eh a proxima entrega que move o painel.</div>
+                            <div id="directionSubline" style="font-size:1rem; color:var(--text-muted); line-height:1.5; max-width: 600px;">A ideia aqui é deixar claro onde esse projeto precisa chegar e qual é a próxima entrega que move o painel.</div>
                         </div>
 
                         <!-- Progress Metrics Minimal View -->
@@ -655,7 +655,7 @@ pre { background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 8px; border: 1p
                                     <div id="logReaderStatus" style="font-size:0.76rem; color:var(--text-muted);">Aguardando sinais do projeto...</div>
                                 </div>
                                 <div id="logReaderFocus" style="font-size:0.84rem; color:var(--text); line-height:1.45; margin-bottom:0.75rem; padding:0.75rem 0.8rem; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:rgba(0,0,0,0.12);">
-                                    A IA ainda nao tem foco sugerido a partir dos logs.
+                                    A IA ainda não tem foco sugerido a partir dos logs.
                                 </div>
                                 <div id="logReaderSignals" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:0.45rem; margin-bottom:0.75rem;">
                                 </div>
@@ -768,6 +768,111 @@ let currentSummaryAudioUrl = null;
 let targetAudioProjectId = null;
 let currentWatchedProjectId = null;
 
+const DISPLAY_REPAIRS = [
+    [/nexus:auto-discovery\s*/gi, ''],
+    [/navega(?:��o|\?\?o)/gi, 'navegação'],
+    [/integra(?:��o|\?\?o)/gi, 'integração'],
+    [/valida(?:��o|\?\?o)/gi, 'validação'],
+    [/restaura(?:��o|\?\?o)/gi, 'restauração'],
+    [/descri(?:��o|\?\?o)/gi, 'descrição'],
+    [/verifica(?:��o|\?\?o)/gi, 'verificação'],
+    [/conclus(?:��o|\?\?o)/gi, 'conclusão'],
+    [/execu(?:��o|\?\?o)/gi, 'execução'],
+    [/observa(?:��o|\?\?o)/gi, 'observação'],
+    [/documenta(?:��o|\?\?o)/gi, 'documentação'],
+    [/hist(?:�rico|\?rico)/gi, 'histórico'],
+    [/pend(?:�ncias|\?ncias)/gi, 'pendências'],
+    [/t(?:�cnica|\?cnica)/gi, 'técnica'],
+    [/pr(?:�ximo|\?ximo)/gi, 'próximo'],
+    [/autom(?:�tico|\?tico)/gi, 'automático'],
+    [/pr(?:�pria|\?pria)/gi, 'própria'],
+    [/in(?:�cio|\?cio)/gi, 'início'],
+    [/(?:�rea|\?rea)/gi, 'área'],
+    [/n�o|n\?o/gi, 'não'],
+    [/h\?/gi, 'há'],
+    [/autom\?tico/gi, 'automático'],
+    [/instru\?\?o/gi, 'instrução'],
+    [/\?udio/gi, 'áudio'],
+    [/A��o|A\?\?o/g, 'Ação'],
+    [/a��o|a\?\?o/g, 'ação'],
+    [/aten��o|aten\?\?o/gi, 'atenção'],
+    [/\u00C3\u00A1/g, 'á'],
+    [/\u00C3\u00A2/g, 'â'],
+    [/\u00C3\u00A3/g, 'ã'],
+    [/\u00C3\u00A9/g, 'é'],
+    [/\u00C3\u00AA/g, 'ê'],
+    [/\u00C3\u00AD/g, 'í'],
+    [/\u00C3\u00B3/g, 'ó'],
+    [/\u00C3\u00B4/g, 'ô'],
+    [/\u00C3\u00BA/g, 'ú'],
+    [/\u00C3\u00A7/g, 'ç'],
+    [/\u00FFFD+/g, ''],
+];
+
+function normalizeDisplayText(value) {
+    let text = value == null ? '' : String(value);
+
+    if (/[ÃÂâï�]/.test(text)) {
+        try {
+            const repaired = decodeURIComponent(escape(text));
+            const originalArtifacts = (text.match(/[ÃÂâï�]/g) || []).length;
+            const repairedArtifacts = (repaired.match(/[ÃÂâï�]/g) || []).length;
+            if (repairedArtifacts <= originalArtifacts) {
+                text = repaired;
+            }
+        } catch(_) {}
+    }
+
+    for (const [pattern, replacement] of DISPLAY_REPAIRS) {
+        text = text.replace(pattern, replacement);
+    }
+
+    return text.trim();
+}
+
+function repairVisibleText(root = document.body) {
+    if (!root) return;
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const changed = [];
+    let node;
+
+    while ((node = walker.nextNode())) {
+        const nextValue = normalizeDisplayText(node.nodeValue);
+        if (nextValue !== node.nodeValue) {
+            changed.push([node, nextValue]);
+        }
+    }
+
+    changed.forEach(([target, value]) => {
+        target.nodeValue = value;
+    });
+
+    root.querySelectorAll?.('[title],[placeholder]').forEach((element) => {
+        if (element.hasAttribute('title')) {
+            element.setAttribute('title', normalizeDisplayText(element.getAttribute('title')));
+        }
+        if (element.hasAttribute('placeholder')) {
+            element.setAttribute('placeholder', normalizeDisplayText(element.getAttribute('placeholder')));
+        }
+    });
+}
+
+function textOrFallback(value, fallback = '') {
+    const normalized = normalizeDisplayText(value);
+    return normalized || fallback;
+}
+
+function safeHtml(value) {
+    return escapeHtml(textOrFallback(value));
+}
+
+function formatStatusBadgeClass(status) {
+    if (status === 'awaiting_external') return 'badge badge-health-risky';
+    if (status === 'completed') return 'badge badge-state-active';
+    if (status === 'failed') return 'badge badge-health-risky';
+    return 'badge badge-health-steady';
+}
 
 async function init() {
     try {
@@ -916,6 +1021,7 @@ function handleSnapshot(data) {
     renderQueueStats(data.stats);
     if(data.manualAssist) renderManualAssist(data.manualAssist);
     renderAudit(data.audit);
+    repairVisibleText(document.body);
     notifyRealtimeProjectWatch();
 }
 
@@ -938,11 +1044,11 @@ function renderSidebar() {
         return `
             <div class="project-item ${isActive ? 'active' : ''}" onclick="switchProject('${project.id}')">
                 <div class="project-icon" style="background: ${color}22; color: ${color}; border: 1px solid ${color}44;">
-                    ${settings.icon ? settings.icon.substring(0,1).toUpperCase() : project.name.charAt(0).toUpperCase()}
+                    ${safeHtml(settings.icon ? settings.icon.substring(0,1).toUpperCase() : project.name.charAt(0).toUpperCase())}
                 </div>
                 <div style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                    <div style="font-size: 0.9rem; font-weight: 600;">${project.name}</div>
-                    <div style="font-size: 0.75rem; opacity: 0.7;">State: ${project.state}</div>
+                    <div style="font-size: 0.9rem; font-weight: 600;">${safeHtml(project.name)}</div>
+                    <div style="font-size: 0.75rem; opacity: 0.7;">Estado: ${safeHtml(project.state)}</div>
                 </div>
             </div>
         `;
@@ -977,9 +1083,9 @@ function createNewProject() {
 function openNewProjectModal() {
     document.getElementById('newProjectOverlay').style.display = 'block';
     document.getElementById('newProjectModal').style.display = 'flex';
-    document.getElementById('projectModalTitle').innerHTML = '<span>📂</span> Importar Workspace';
-    document.getElementById('projectModalDescription').textContent = 'Atribua diretamente a pasta raiz de um projeto que você possui. O Nexus fará o indexamento e inferirá a Stack de início.';
-    document.getElementById('projectModalSubmit').textContent = 'Registrar 🚀';
+    document.getElementById('projectModalTitle').textContent = 'Importar workspace';
+    document.getElementById('projectModalDescription').textContent = 'Atribua diretamente a pasta raiz de um projeto que voc\u00EA possui. O Nexus far\u00E1 o indexamento e inferir\u00E1 a stack de in\u00EDcio.';
+    document.getElementById('projectModalSubmit').textContent = 'Registrar';
     document.getElementById('inpProjectRoot').value = '';
     const nameInput = document.getElementById('inpProjectName');
     nameInput.value = '';
@@ -993,8 +1099,8 @@ function openLinkProjectModal() {
     projectModalMode = 'link';
     document.getElementById('newProjectOverlay').style.display = 'block';
     document.getElementById('newProjectModal').style.display = 'flex';
-    document.getElementById('projectModalTitle').innerHTML = '<span>📎</span> Ligar Pasta ao Projeto';
-    document.getElementById('projectModalDescription').textContent = `Conecte uma pasta real ao projeto "${snap.project.name}" para o Nexus ler os arquivos, entender a estrutura e atualizar o painel.`;
+    document.getElementById('projectModalTitle').textContent = 'Ligar pasta ao projeto';
+    document.getElementById('projectModalDescription').textContent = `Conecte uma pasta real ao projeto "${textOrFallback(snap.project.name)}" para o Nexus ler os arquivos, entender a estrutura e atualizar o painel.`;
     document.getElementById('projectModalSubmit').textContent = 'Ligar Pasta';
     document.getElementById('inpProjectRoot').value = snap.settings?.projectRoot || '';
     const nameInput = document.getElementById('inpProjectName');
@@ -1026,7 +1132,7 @@ async function submitNewProject() {
     const nameVal = document.getElementById('inpProjectName').value.trim();
     if(projectModalMode === 'link') {
         if(!rootVal) { alert("Informe o caminho da pasta para ligar ao projeto."); return; }
-        if(!globalState.activeProject?.project?.id) { alert("Nao encontrei o projeto ativo para ligar a pasta."); return; }
+        if(!globalState.activeProject?.project?.id) { alert("N\u00E3o encontrei o projeto ativo para ligar a pasta."); return; }
 
         closeNewProjectModal();
         try {
@@ -1100,7 +1206,7 @@ async function deleteActiveProject() {
         await refreshBootstrap();
     } catch(e) {
         console.error("Falha ao excluir projeto", e);
-        alert("Nao consegui excluir esse projeto agora.");
+        alert("Não consegui excluir esse projeto agora.");
     } finally {
         btn.disabled = false;
         btn.textContent = 'Excluir Projeto';
@@ -1126,9 +1232,9 @@ function renderActiveProject() {
     
     if(settings.projectRoot) {
         wsInfo.style.display = 'flex';
-        document.getElementById('wsPath').innerHTML = `📁 ${settings.projectRoot}`;
-        document.getElementById('wsStack').innerHTML = settings.stackHint ? `${settings.stackHint}` : 'Stack genérica';
-        document.getElementById('wsIndexed').innerHTML = settings.lastIndexedAt ? `⏱ ${new Date(settings.lastIndexedAt).toLocaleTimeString()}` : '⏱ Indexando...';
+        document.getElementById('wsPath').textContent = `Pasta: ${textOrFallback(settings.projectRoot)}`;
+        document.getElementById('wsStack').textContent = textOrFallback(settings.stackHint, 'Stack genérica');
+        document.getElementById('wsIndexed').textContent = settings.lastIndexedAt ? `Indexado: ${new Date(settings.lastIndexedAt).toLocaleTimeString()}` : 'Indexando...';
         btnRescan.style.display = 'inline-block';
         btnLinkProjectRoot.style.display = 'none';
     } else {
@@ -1172,7 +1278,7 @@ function renderActiveProject() {
     document.getElementById('directionSubline').textContent = directionSubline;
     document.getElementById('directionObjective').textContent = snap.dashboard?.status?.nextFocus || topTask?.title || 'Nenhum objetivo imediato mapeado.';
     document.getElementById('directionMilestone').textContent = topMilestone?.title || 'Nenhum milestone em aberto.';
-    document.getElementById('directionNextTask').textContent = topTask?.title || 'Nenhuma proxima entrega definida.';
+    document.getElementById('directionNextTask').textContent = textOrFallback(topTask?.title, 'Nenhuma próxima entrega definida.');
     document.getElementById('directionStateBadge').textContent = (snap.project.state || 'active').toUpperCase();
     document.getElementById('directionStateBadge').className = `badge badge-state-${snap.project.state || 'active'}`;
     document.getElementById('directionHealthBadge').textContent = (snap.dashboard?.status?.health || 'steady').toUpperCase();
@@ -1190,11 +1296,11 @@ function renderActiveProject() {
         return `
             <div style="padding:0.85rem 0.95rem; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03);">
                 <div style="display:flex; justify-content:space-between; gap:0.75rem; align-items:flex-start;">
-                    <div style="font-size:0.9rem; color:var(--text); line-height:1.45;">${task.title || 'Tarefa sem titulo'}</div>
+                    <div style="font-size:0.9rem; color:var(--text); line-height:1.45;">${safeHtml(task.title || 'Tarefa sem título')}</div>
                     <span class="badge" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:var(--text-muted);">${(task.priority || 'medium').toUpperCase()}</span>
                 </div>
                 <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.45rem;">Prazo: ${dueLabel}</div>
-                ${task.description ? `<div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.45rem; line-height:1.45;">${task.description}</div>` : ''}
+                ${task.description ? `<div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.45rem; line-height:1.45;">${safeHtml(task.description)}</div>` : ''}
                 <div style="display:flex; justify-content:flex-end; margin-top:0.75rem;">
                     <button class="btn-secondary" style="padding:0.45rem 0.75rem; font-size:0.78rem; border-color:rgba(6, 182, 212, 0.35); color:var(--secondary);" onclick="dispatchAgendaTask('${task.id}', this)">${sendLabel}</button>
                 </div>
@@ -1204,10 +1310,10 @@ function renderActiveProject() {
     document.getElementById('milestoneRoadmapList').innerHTML = openMilestones.slice(0, 4).map(item => `
         <div style="padding:0.85rem 0.95rem; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03);">
             <div style="display:flex; justify-content:space-between; gap:0.75rem; align-items:flex-start;">
-                <div style="font-size:0.9rem; color:var(--text); line-height:1.45;">${item.title || 'Milestone sem titulo'}</div>
+                <div style="font-size:0.9rem; color:var(--text); line-height:1.45;">${safeHtml(item.title || 'Marco sem título')}</div>
                 <span class="badge badge-state-${item.status || 'pending'}">${(item.status || 'pending').toUpperCase()}</span>
             </div>
-            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.45rem;">${item.description || 'Sem detalhe adicional para este marco.'}</div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.45rem;">${safeHtml(item.description || 'Sem detalhe adicional para este marco.')}</div>
         </div>
     `).join('') || '<div style="color:var(--text-muted); font-size:0.85rem; padding:0.9rem; border:1px dashed var(--border); border-radius:8px;">Nenhum milestone pendente no momento.</div>';
 
@@ -1218,8 +1324,8 @@ function renderActiveProject() {
     const projectLogs = Array.isArray(snap.logs) ? snap.logs : [];
     const globalActivity = Array.isArray(globalState.activity) ? globalState.activity : [];
     const scopeInfo = projectLogs.length > 0
-        ? `Mostrando os logs do projeto ativo <strong>${snap.project.name}</strong>. A atividade global recente do Nexus tambem aparece abaixo para nao esconder trabalho feito em outros projetos.`
-        : `O projeto ativo <strong>${snap.project.name}</strong> ainda tem pouco historico proprio. Por isso o painel tambem mostra a atividade global recente do Nexus.`;
+        ? `Mostrando os logs do projeto ativo <strong>${safeHtml(snap.project.name)}</strong>. A atividade global recente do Nexus também aparece abaixo para não esconder trabalho feito em outros projetos.`
+        : `O projeto ativo <strong>${safeHtml(snap.project.name)}</strong> ainda tem pouco histórico próprio. Por isso o painel também mostra a atividade global recente do Nexus.`;
     document.getElementById('logsScopeInfo').innerHTML = scopeInfo;
     
     const mergedAgentSummary = report.agentSummary || logs.agentSummary || {};
@@ -1262,7 +1368,7 @@ function renderActiveProject() {
                 <div style="font-size:0.84rem; color:var(--text); line-height:1.45;">${entry}</div>
             </div>
         `).join('')
-        : '<div style="font-size:0.84rem; color:var(--text-muted); line-height:1.45;">O resumo estruturado dos logs ainda nao tem entradas suficientes para virar leitura automatizada.</div>';
+        : '<div style="font-size:0.84rem; color:var(--text-muted); line-height:1.45;">O resumo estruturado dos logs ainda não tem entradas suficientes para virar leitura automatizada.</div>';
 
     const projectTimelineHTML = projectLogs.slice(0, 6).map(entry => `
         <div class="timeline-item">
@@ -1290,10 +1396,10 @@ function renderActiveProject() {
     const cmds = snap.commands || [];
     document.getElementById('commandsList').innerHTML = cmds.map(c => `
         <div class="cmd-item" onclick="openCommandDrawer('${c.id}')">
-            <div class="cmd-text">${c.payload?.text || 'Sem instrução clara'}</div>
+            <div class="cmd-text">${safeHtml(c.payload?.text || 'Sem instrução clara')}</div>
             <div class="cmd-meta">
-                <span class="badge" style="background:var(--bg); border:1px solid var(--border); color:var(--text-muted);">${c.target}</span>
-                <span class="badge badge-state-${c.status === 'awaiting_external' ? 'health-risky' : 'active'}">${c.status}</span>
+                <span class="badge" style="background:var(--bg); border:1px solid var(--border); color:var(--text-muted);">${safeHtml(c.target)}</span>
+                <span class="${formatStatusBadgeClass(c.status)}">${safeHtml(c.status)}</span>
             </div>
         </div>
     `).join('') || '<div style="color:var(--text-muted); font-size:0.85rem;">Lista vazia.</div>';
@@ -1353,7 +1459,7 @@ function renderProjectSummary(snap) {
         }
         
         html += `<div style="font-size: 0.75rem; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 1px; color: ${pColor}; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem; background: rgba(0,0,0,0.2); padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid ${pColor}33;">
-            ${pIcon} AI Mode: ${personality.mode} ${intensityBar}
+            ${pIcon} Modo da IA: ${safeHtml(personality.mode)} ${intensityBar}
         </div>`;
     }
     
@@ -1364,18 +1470,18 @@ function renderProjectSummary(snap) {
                 ? msg
                 : (msg && typeof msg.text === 'string' ? msg.text : '');
              if(text) {
-                html += `<p style="line-height: 1.7; color: var(--text); font-size: 0.98rem; font-weight: 300; letter-spacing: 0.3px;">${text.replace(/\n/g, '<br/>')}</p>`;
+                html += `<p style="line-height: 1.7; color: var(--text); font-size: 0.98rem; font-weight: 300; letter-spacing: 0.3px;">${safeHtml(text).replace(/\n/g, '<br/>')}</p>`;
              }
         });
         html += `</div>`;
     } else if(summary && summary.text) {
-        html += `<div style="margin-bottom: 0.5rem;">${(summary.text || '').replace(/\n/g, '<br/>')}</div>`;
+        html += `<div style="margin-bottom: 0.5rem;">${safeHtml(summary.text || '').replace(/\n/g, '<br/>')}</div>`;
     }
     
     if(summary && summary.highlights && summary.highlights.length > 0) {
         html += `<div style="background: rgba(6, 182, 212, 0.1); padding: 1rem; border-radius: 8px; border-left: 4px solid var(--secondary); margin-bottom: 1rem;">
             <ul style="list-style-position: inside; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem;">
-                ${summary.highlights.map(h => `<li style="font-weight: 500; color: var(--text);">${h}</li>`).join('')}
+                ${summary.highlights.map(h => `<li style="font-weight: 500; color: var(--text);">${safeHtml(h)}</li>`).join('')}
             </ul>
         </div>`;
     }
@@ -1384,9 +1490,9 @@ function renderProjectSummary(snap) {
         html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">`;
         summary.sections.forEach(s => {
             html += `<div style="background: rgba(24, 24, 27, 0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1.25rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
-                <h4 style="color: var(--secondary); margin-bottom: 0.85rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">${s.title}</h4>
+                <h4 style="color: var(--secondary); margin-bottom: 0.85rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">${safeHtml(s.title)}</h4>
                 <ul style="list-style-position: inside; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; color: #a1a1aa; font-size: 0.88rem; line-height: 1.5;">
-                    ${(s.items || []).map(i => `<li>${i}</li>`).join('')}
+                    ${(s.items || []).map(i => `<li>${safeHtml(i)}</li>`).join('')}
                 </ul>
             </div>`;
         });
@@ -1395,7 +1501,7 @@ function renderProjectSummary(snap) {
     
     if(audio && audio.error) {
         html += `<div style="margin-top: 0.75rem; padding: 0.85rem 1rem; border-radius: 8px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); color: var(--text-muted); font-size: 0.84rem; line-height: 1.5;">
-            O resumo continua disponivel para leitura. O audio encontrou um problema no provedor atual e o Nexus vai tentar regenerar quando voce pedir novamente.
+            O resumo continua disponível para leitura. O áudio encontrou um problema no provedor atual e o Nexus vai tentar regenerar quando você pedir novamente.
         </div>`;
     }
     content.innerHTML = html;
@@ -1405,29 +1511,30 @@ function renderProjectSummary(snap) {
         const s = audio.status || 'idle';
         if(s === 'playing') {
              badge.textContent = "PLAYING"; badge.className = "badge badge-state-active";
-             btn.innerHTML = "⏸ Pausar"; btn.disabled = false; btn.className = "btn-primary";
+             btn.textContent = "Pausar"; btn.disabled = false; btn.className = "btn-primary";
         } else if(s === 'paused') {
              badge.textContent = "PAUSED"; badge.className = "badge badge-health-steady";
-             btn.innerHTML = "▶ Continuar"; btn.disabled = false; btn.className = "btn-primary";
+             btn.textContent = "Continuar"; btn.disabled = false; btn.className = "btn-primary";
         } else if(s === 'generating') {
              badge.textContent = "GERANDO"; badge.className = "badge badge-health-risky";
-             btn.innerHTML = "⏳ Aguarde"; btn.disabled = true; btn.className = "btn-secondary";
+             btn.textContent = "Aguarde"; btn.disabled = true; btn.className = "btn-secondary";
         } else if(s === 'failed') {
              badge.textContent = "AUDIO INDISPONIVEL"; badge.className = "badge badge-health-risky";
-             btn.innerHTML = "❌ Erro (Gerar Novamente?)"; btn.disabled = false; btn.className = "btn-secondary";
+             btn.textContent = "Erro (gerar novamente?)"; btn.disabled = false; btn.className = "btn-secondary";
         } else {
              badge.textContent = "READY"; badge.className = "badge badge-health-steady";
-             btn.innerHTML = "▶ Ouvir Resumo"; btn.disabled = false; btn.className = "btn-primary";
+             btn.textContent = "Ouvir resumo"; btn.disabled = false; btn.className = "btn-primary";
         }
     } else if(summary && summary.audioUrl) {
          currentSummaryAudioUrl = summary.audioUrl;
          badge.textContent = "READY"; badge.className = "badge badge-health-steady";
-         btn.innerHTML = "▶ Ouvir Resumo"; btn.disabled = false; btn.className = "btn-primary";
+         btn.textContent = "Ouvir resumo"; btn.disabled = false; btn.className = "btn-primary";
     } else {
         currentSummaryAudioUrl = null;
         badge.textContent = "IDLE"; badge.className = "badge badge-health-risky";
-        btn.innerHTML = "⚙️ Gerar Áudio"; btn.disabled = false; btn.className = "btn-primary";
+        btn.textContent = "Gerar \u00E1udio"; btn.disabled = false; btn.className = "btn-primary";
     }
+    repairVisibleText(sec);
 }
 
 async function syncAudioStatus(statusStr) {
@@ -1447,47 +1554,47 @@ async function toggleAudio(e) {
     const badge = document.getElementById('audioStatusBadge');
     
     if(!currentSummaryAudioUrl || btn.innerHTML.includes("Gerar") || btn.innerHTML.includes("Erro")) {
-        btn.innerHTML = "⏳ Solicitando...";
+        btn.textContent = "Solicitando...";
         btn.disabled = true;
         badge.textContent = "GENERATING";
         try {
             await fetch(`${API_BASE}/projects/${targetAudioProjectId}/summary/audio`, { method: 'POST' });
         } catch(ex) {
             console.error(ex);
-            btn.innerHTML = "❌ Falha Interna";
+            btn.textContent = "Falha interna";
             btn.disabled = false;
         }
         return;
     }
 
     if(!currentAudio && currentSummaryAudioUrl) {
-        btn.innerHTML = "⏳ Bufferizando...";
+        btn.textContent = "Bufferizando...";
         btn.disabled = true;
         badge.textContent = "LOADING";
         
         currentAudio = new Audio(API_BASE + currentSummaryAudioUrl);
         
         currentAudio.onplay = () => {
-            btn.innerHTML = "⏸ Pausar"; btn.disabled = false; btn.className = "btn-primary";
+            btn.textContent = "Pausar"; btn.disabled = false; btn.className = "btn-primary";
             badge.textContent = "PLAYING"; badge.className = "badge badge-state-active";
             syncAudioStatus("playing");
         };
         
         currentAudio.onpause = () => {
-            btn.innerHTML = "▶ Continuar"; btn.disabled = false;
+            btn.textContent = "Continuar"; btn.disabled = false;
             badge.textContent = "PAUSED"; badge.className = "badge badge-health-steady";
             syncAudioStatus("paused");
         };
         
         currentAudio.onended = () => {
-            btn.innerHTML = "▶ Ouvir Resumo";
+            btn.textContent = "Ouvir resumo";
             badge.textContent = "READY"; badge.className = "badge badge-health-steady";
             syncAudioStatus("ready");
             currentAudio = null;
         };
         
         currentAudio.onerror = () => {
-            btn.innerHTML = "❌ Falha Toca-Discos"; btn.disabled = false;
+            btn.textContent = "Falha ao reproduzir"; btn.disabled = false;
             badge.textContent = "ERROR"; badge.className = "badge badge-health-risky";
             syncAudioStatus("failed");
             currentAudio = null;
@@ -1495,7 +1602,7 @@ async function toggleAudio(e) {
         
         currentAudio.play().catch(err => {
             console.error(err);
-            btn.innerHTML = "▶ Tentar Novamente"; btn.disabled = false;
+            btn.textContent = "Tentar novamente"; btn.disabled = false;
         });
     } else if (currentAudio) {
         if(currentAudio.paused) {
@@ -1538,7 +1645,7 @@ function renderFilesPanel(snap) {
     const badge = document.getElementById('filesCountBadge');
 
     if(!files) {
-        synopsis.textContent = 'O Nexus ainda nao recebeu dados de arquivos para este projeto.';
+        synopsis.textContent = 'O Nexus ainda não recebeu dados de arquivos para este projeto.';
         stats.innerHTML = '';
         list.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; padding: 1rem; text-align: center; border: 1px dashed var(--border); border-radius: 8px;">Nenhum arquivo indexado ainda.</div>';
         badge.textContent = '0 arquivos';
@@ -1546,7 +1653,7 @@ function renderFilesPanel(snap) {
     }
 
     badge.textContent = `${files.totals?.files || 0} indexados`;
-    synopsis.innerHTML = (files.synopsis || 'O workspace foi conectado, mas ainda nao houve leitura suficiente para resumir o projeto.').replace(/\n/g, '<br/>');
+    synopsis.innerHTML = safeHtml(files.synopsis || 'O workspace foi conectado, mas ainda n?o houve leitura suficiente para resumir o projeto.').replace(/\n/g, '<br/>');
     
     stats.innerHTML = `
         <div style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:6px; padding:0.75rem; text-align: center; display: flex; flex-direction: column; gap: 0.25rem;">
@@ -1571,13 +1678,13 @@ function renderFilesPanel(snap) {
     list.innerHTML = entries.map(file => `
         <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 0.85rem; border-radius: 8px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; gap: 0.5rem;" onmouseover="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(6, 182, 212, 0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.02)'; this.style.borderColor='var(--border)'" onclick="openFilePreview('${encodeURIComponent(file.path)}')">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
-                <div style="font-family: var(--font-mono); font-size: 0.85rem; color: ${file.isKeyFile ? 'var(--secondary)' : 'var(--text)'}; word-break: break-all; font-weight: 600;">${file.path}</div>
+                <div style="font-family: var(--font-mono); font-size: 0.85rem; color: ${file.isKeyFile ? 'var(--secondary)' : 'var(--text)'}; word-break: break-all; font-weight: 600;">${safeHtml(file.path)}</div>
                 <div style="display: flex; gap: 0.4rem; flex-shrink: 0;">
-                    <span class="badge" style="background:var(--bg); border:1px solid var(--border); color:var(--text-muted); font-size: 0.6rem;">${file.category.toUpperCase()}</span>
-                    ${file.isKeyFile ? `<span class="badge" style="background:rgba(6, 182, 212, 0.12); color:var(--secondary); border:1px solid rgba(6, 182, 212, 0.3); font-size: 0.6rem;">🔥 KEY</span>` : `<span class="badge" style="background:rgba(255,255,255,0.04); color:var(--text-muted); border:1px solid var(--border); font-size: 0.6rem;">${file.extension ? file.extension.toUpperCase() : 'DOC'}</span>`}
+                    <span class="badge" style="background:var(--bg); border:1px solid var(--border); color:var(--text-muted); font-size: 0.6rem;">${safeHtml(file.category.toUpperCase())}</span>
+                    ${file.isKeyFile ? `<span class="badge" style="background:rgba(6, 182, 212, 0.12); color:var(--secondary); border:1px solid rgba(6, 182, 212, 0.3); font-size: 0.6rem;">🔥 KEY</span>` : `<span class="badge" style="background:rgba(255,255,255,0.04); color:var(--text-muted); border:1px solid var(--border); font-size: 0.6rem;">${safeHtml(file.extension ? file.extension.toUpperCase() : 'DOC')}</span>`}
                 </div>
             </div>
-            ${file.preview ? `<div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; padding: 0.5rem; background: rgba(0,0,0,0.4); border-radius: 4px; border-left: 2px solid ${file.isKeyFile ? 'var(--secondary)' : '#555'}; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${file.preview}</div>` : ''}
+            ${file.preview ? `<div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; padding: 0.5rem; background: rgba(0,0,0,0.4); border-radius: 4px; border-left: 2px solid ${file.isKeyFile ? 'var(--secondary)' : '#555'}; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${safeHtml(file.preview)}</div>` : ''}
         </div>
     `).join('') || '<div style="color: var(--text-muted); font-size: 0.85rem; padding: 1rem; text-align: center; border: 1px dashed var(--border); border-radius: 8px;">Nenhum detalhamento individual retornado.</div>';
 }
@@ -1624,7 +1731,7 @@ async function dispatchAgendaTask(taskId, button) {
         }
     } catch(error) {
         console.error(error);
-        alert('Nao consegui enviar essa pendencia para o agente agora.');
+        alert('Não consegui enviar essa pendência para o agente agora.');
         if(button) {
             button.disabled = false;
             button.textContent = originalLabel || 'Enviar para o agente';
@@ -1643,6 +1750,7 @@ function openDrawerShell(html) {
     const overlay = document.getElementById('drawerOverlay');
     const content = document.getElementById('drawerContent');
     content.innerHTML = html;
+    repairVisibleText(content);
     overlay.classList.add('open');
     drawer.classList.add('open');
 }
@@ -1685,7 +1793,7 @@ async function openCommandDrawer(id) {
                 <div style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">ID: ${data.id}</div>
                 <div class="badge badge-state-active" style="display:inline-block; margin-top:1rem;">${data.status}</div>
             </div>
-            <h4 style="color:var(--primary); font-size:0.85rem; text-transform:uppercase; margin-bottom:0.5rem; letter-spacing:1px;">Instrucao Payload</h4>
+            <h4 style="color:var(--primary); font-size:0.85rem; text-transform:uppercase; margin-bottom:0.5rem; letter-spacing:1px;">Instrução Payload</h4>
             <pre>${escapeHtml(data.payload?.text || JSON.stringify(data.payload, null, 2))}</pre>
             ${data.result ? `<h4 style="color:var(--success); font-size:0.85rem; text-transform:uppercase; margin-top:2rem; margin-bottom:0.5rem; letter-spacing:1px;">Resultado</h4><pre>${escapeHtml(JSON.stringify(data.result, null, 2))}</pre>` : ''}
         `);
@@ -1718,12 +1826,12 @@ async function openFilePreview(encodedPath) {
             <pre>${escapeHtml(data.content || '')}</pre>
         `);
     } catch(e) {
-        openDrawerShell('<p style="color:var(--danger);">Nao consegui abrir esse arquivo agora.</p>');
+        openDrawerShell('<p style="color:var(--danger);">Não consegui abrir esse arquivo agora.</p>');
     }
 }
 
 function escapeHtml(value) {
-    return String(value)
+    return normalizeDisplayText(value)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');

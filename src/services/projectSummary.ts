@@ -77,23 +77,23 @@ export class ProjectSummaryService {
   buildSummary(source: ProjectSummarySource): ProjectSummarySnapshot {
     const sourceUpdatedAt = this.computeSourceUpdatedAt(source);
     const personality = source.personality;
-    const sections = this.buildSections(source, personality);
-    const text = this.renderText(source.project.name, sections, source.dashboard.status.nextFocus, personality);
+    const sections = this.cleanSections(this.buildSections(source, personality));
+    const text = this.cleanText(this.renderText(source.project.name, sections, source.dashboard.status.nextFocus, personality));
     const audioText = this.renderAudioText(source, sections, personality);
     const textHash = this.hash(audioText);
     const audio = this.buildAudioState(source.project.id, textHash);
-    const narrator = this.buildNarrator(source, sections, audio, sourceUpdatedAt, personality);
+    const narrator = this.cleanNarrator(this.buildNarrator(source, sections, audio, sourceUpdatedAt, personality));
 
     return {
       projectId: source.project.id,
       personality,
       summary: {
-        title: `Resumo do projeto ${source.project.name}`,
+        title: this.cleanText(`Resumo do projeto ${source.project.name}`),
         text,
         lastUpdated: sourceUpdatedAt,
         sourceUpdatedAt,
         sections,
-        highlights: sections.find((section) => section.title === "Panorama rápido")?.items ?? [],
+        highlights: sections.find((section) => this.normalize(section.title) === "panorama rapido")?.items ?? [],
         audioUrl: audio.audioUrl,
         status: audio.status,
         audio,
@@ -446,17 +446,7 @@ export class ProjectSummaryService {
             high: ["Nem acredito que posso dizer isso sem rir."],
           },
         ),
-      this.withPersonality(
-        `highlight-level:${source.project.id}`,
-        `O projeto está no nível ${source.dashboard.gamification.level}, com ${source.dashboard.gamification.experiencePoints} XP acumulados.`,
-        personality,
-        {
-          low: ["Gamificação funcionando sem precisar de fanfarra."],
-          medium: ["Subiu de nível sem cutscene, mas subiu."],
-          high: ["XP entrou. Heroísmo talvez seja exagero, mas trabalho houve."],
-        },
-      ),
-    ]).slice(0, 5);
+    ]).slice(0, 4);
 
     return [
       {
@@ -563,7 +553,7 @@ export class ProjectSummaryService {
       this.computeSourceUpdatedAt(source),
       personality,
     );
-    const highlights = sections.find((section) => section.title === "Panorama rÃ¡pido")?.items ?? [];
+    const highlights = sections.find((section) => this.normalize(section.title) === "panorama rapido")?.items ?? [];
 
     return [
       `Leitura completa do resumo do projeto ${source.project.name}.`,
@@ -707,6 +697,48 @@ export class ProjectSummaryService {
     ].filter(Boolean);
 
     return candidates.sort().at(-1) ?? new Date().toISOString();
+  }
+
+  private cleanSections(sections: ProjectSummarySection[]) {
+    return sections.map((section) => ({
+      ...section,
+      title: this.cleanText(section.title),
+      items: section.items.map((item) => this.cleanText(item)),
+    }));
+  }
+
+  private cleanNarrator(narrator: ProjectNarratorData): ProjectNarratorData {
+    return {
+      ...narrator,
+      messages: narrator.messages.map((message) => ({
+        ...message,
+        text: this.cleanText(message.text),
+      })),
+    };
+  }
+
+  private cleanText(value: string) {
+    let textValue = value;
+
+    if (/[\u00C3\u00C2\u00E2\u00EF\uFFFD]/.test(textValue)) {
+      try {
+        const repaired = Buffer.from(textValue, "latin1").toString("utf8");
+        textValue = this.countTextArtifacts(repaired) <= this.countTextArtifacts(textValue)
+          ? repaired
+          : textValue;
+      } catch {
+        // Mantem o texto original se a conversao falhar.
+      }
+    }
+
+    return textValue
+      .replace(/nexus:auto-discovery\s*/gi, "")
+      .replace(/\uFFFD+/g, "")
+      .trim();
+  }
+
+  private countTextArtifacts(value: string) {
+    return (value.match(/[\u00C3].|[\u00C2].|[\u00E2].|[\uFFFD]/g) ?? []).length;
   }
 
   private compareTaskPriority(left: NexusTask, right: NexusTask) {
