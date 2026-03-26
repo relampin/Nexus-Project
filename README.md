@@ -1,73 +1,53 @@
 # Nexus Portatil
 
-Painel e bridge local para orquestrar `Codex` e `Antigravity` em qualquer projeto, com dashboard web multi-projetos, fila persistente, agenda operacional, logs por IA, resumo inteligente, TTS e monitoramento da sessao visivel do Antigravity.
+Nexus Portatil e uma plataforma local para orquestrar `Codex` e `Antigravity` em qualquer projeto. Ele fornece painel web, fila persistente, agenda operacional, logs por agente, resumos inteligentes, validacao automatica e uma ponte de handoff para o Antigravity por CDP ou modo assistido manual.
 
-## O que ele faz
+## Visao geral
 
-- recebe comandos por API e pelo painel
-- guarda fila persistente por projeto
-- despacha jobs para `codex` e `antigravity`
-- injeta handoffs no Antigravity via CDP
+Hoje o fluxo oficial do Nexus e este:
+
+1. o usuario trabalha no painel do Nexus
+2. o Nexus cria jobs por projeto
+3. jobs de `codex` podem ser executados automaticamente
+4. jobs de `antigravity` geram handoff, tentam entrega via CDP e ficam em modo assistido se o CDP nao estiver disponivel
+5. o Nexus acompanha fila, logs, timeline, revisao e validacao
+
+Telegram nao faz mais parte do fluxo oficial.
+
+## O que o Nexus faz
+
+- gerencia multiplos projetos e um projeto ativo global
+- indexa workspace e resume o que entendeu do projeto
+- organiza agenda, task board, radar, timeline e logs
+- dispara jobs para `codex` e `antigravity`
+- gera handoff tecnico estruturado para o Antigravity
+- monitora a sessao visivel do Antigravity via CDP
 - fecha jobs por log, review e validacao automatica
-- mostra timeline, Git, agenda, workspace, auditoria e resumo diario
-- opcionalmente usa Telegram como transporte
+- expõe um painel em tempo real com WebSocket e fallback local
 
-## O que e obrigatorio
+## Requisitos
 
 - Node.js
-- Antigravity aberto no projeto alvo
-- porta CDP do Antigravity exposta em `127.0.0.1:9222`
+- Antigravity instalado e aberto quando houver jobs de frontend
+- CDP do Antigravity exposto em `127.0.0.1:9222` para entrega automatica
 
-## O que e opcional
+## Setup rapido
 
-- Telegram
-- OpenClaw
-- ElevenLabs
+1. copie a pasta do Nexus para a maquina nova
+2. rode `npm install`
+3. copie `.env.example` para `.env` se quiser customizar
+4. ajuste `TARGET_PROJECT_ROOT` se o projeto alvo estiver fora da pasta do Nexus
+5. rode `npm run build`
+6. rode `npm start`
+7. abra `http://localhost:3000/app`
 
-## Como usar
+## Setup do Antigravity
 
-1. Copie esta pasta para qualquer maquina.
-2. Rode `npm install`.
-3. Se quiser, copie `.env.example` para `.env`.
-4. Ajuste `TARGET_PROJECT_ROOT` apenas se quiser apontar para um projeto fora da pasta atual.
-5. Abra Codex e Antigravity nesse projeto.
-6. Confirme a porta do Antigravity:
-   - `http://127.0.0.1:9222/json/version`
-7. Rode o Nexus:
-   - `npm run build`
-   - `npm start`
-8. Abra:
-   - `http://localhost:3000/app`
+Para o Nexus entregar handoffs automaticamente, o Antigravity precisa abrir com CDP habilitado. O alvo padrao do Nexus e:
 
-## Estrutura que entra no repositorio
+- `http://127.0.0.1:9222`
 
-O repositorio precisa apenas do codigo-fonte e dos arquivos de bootstrap:
-
-- `src/`
-- `frontend/`
-- `docs/`
-- `scripts/`
-- `package.json`
-- `package-lock.json`
-- `tsconfig.json`
-- `.env.example`
-- `README.md`
-- `Ligar_Nexus_Portatil.bat`
-
-Pastas de runtime como `data/`, `bridge/`, `log/`, `logs/`, `dist/` e `node_modules/` nao precisam ser versionadas. O Nexus recria o que for necessario ao rodar.
-
-## Sem .env
-
-Se voce nao criar `.env`, o Nexus tenta descobrir sozinho o projeto alvo:
-
-- se a propria pasta do Nexus parece um projeto, ele usa essa pasta
-- se a pasta do Nexus tiver nome tipo `Nexus` e o diretorio pai parecer um projeto, ele usa o diretorio pai
-- se nada disso bater, ele usa a propria pasta do Nexus
-
-Na pratica:
-
-- se voce colocar o `Nexus-portatil` dentro de um projeto, ele tende a funcionar sem configuracao extra
-- se voce deixar o Nexus isolado fora do projeto, vale preencher `TARGET_PROJECT_ROOT`
+Se o CDP nao estiver disponivel, o Nexus continua funcionando, mas os jobs do Antigravity ficam em modo assistido manual ate o agente receber o request.
 
 ## Endpoints principais
 
@@ -92,66 +72,49 @@ Na pratica:
 - `POST /projects/:projectId/validation/run`
 - `GET /projects/:projectId/digest/daily`
 - `GET /projects/:projectId/search?q=texto`
+- `GET /projects/:projectId/files`
+- `GET /projects/:projectId/files/content?path=...`
 - `GET /projects/:projectId/summary`
+- `POST /projects/:projectId/summary/refresh`
 - `POST /projects/:projectId/summary/audio`
+- `PUT /projects/:projectId/summary/audio/status`
+- `GET /projects/:projectId/summary/audio`
 - `GET /commands`
 - `GET /commands/:id`
-- `POST /commands`
+- `POST /ui/dispatch`
 - `GET /diagnostics/audit`
 - `POST /diagnostics/audit/run`
 - `POST /worker/process`
-- `POST /telegram/relay`
 
 ## Realtime
 
 - `ws://localhost:3000/ui/ws`
-  canal bidirecional do painel para snapshots, observacao de projeto e refresh do monitor do Antigravity
-- `GET /ui/events`
-  fallback em SSE caso o websocket nao esteja disponivel
+- fallback: `GET /ui/events`
 
-## Estrutura interna
+## Estrutura importante
 
-- `data/`
-  fila, auditoria, audio, validacoes e estado do Nexus
-- `logs/`
-  logs do orquestrador
-- `frontend/`
-  painel visual do proprio Nexus
-- `TARGET_PROJECT_ROOT/bridge/`
-  jobs por agente
-- `TARGET_PROJECT_ROOT/log/`
-  logs operacionais do Antigravity
+- `src/`: backend, runtime, adapters, services e rotas
+- `frontend/`: painel web do Nexus
+- `docs/`: documentacao canonica do projeto
+- `scripts/`: utilitarios locais
+- `data/`: estado local do Nexus
+- `bridge/`: handoffs gerados para agentes externos
+- `log/`: logs do Antigravity por job
 
-## Frontends
+## Documentacao canonica
 
-- `http://localhost:3000/app`
-  painel do Nexus-portatil
-- `http://localhost:3000/project-app`
-  frontend do projeto alvo, se existir em `TARGET_PROJECT_ROOT/frontend`
-- `http://localhost:3000/store-app`
-  frontend da loja de racao, se existir em `TARGET_PROJECT_ROOT/frontend/store`
+- [Arquitetura Canonica](C:\Projetos Antigravity\teste integração\Nexus-portatil\docs\NEXUS-CANONICAL.md)
+- [Setup em Outra Maquina](C:\Projetos Antigravity\teste integração\Nexus-portatil\docs\SETUP-OUTRA-MAQUINA.md)
+- [Prompt Base do Codex](C:\Projetos Antigravity\teste integração\Nexus-portatil\docs\prompts\CODEX-BOOTSTRAP.md)
+- [Prompt Base do Antigravity](C:\Projetos Antigravity\teste integração\Nexus-portatil\docs\prompts\ANTIGRAVITY-BOOTSTRAP.md)
+- [Contrato do Dashboard](C:\Projetos Antigravity\teste integração\Nexus-portatil\docs\nexus-multiproject-dashboard-contract.md)
 
-## Recursos novos do painel
+## Audio e TTS
 
-- multi-projetos com projeto ativo global
-- perfis de projeto
-- agenda operacional e task board
-- radar do projeto com acoes acionaveis
-- timeline real por projeto
-- integracao com Git
-- validacao automatica
-- resumo diario do projeto
-- busca global no contexto do projeto
-- resumo inteligente com narrador e TTS
-
-## Narrador e TTS
-
-O resumo por projeto sai com texto, mensagens de narrador e bloco de audio.
-
-- `TTS_PROVIDER=internal` usa o narrador local do Windows
-- `TTS_PROVIDER=elevenlabs` tenta usar ElevenLabs quando `ELEVENLABS_API_KEY` e `ELEVENLABS_VOICE_ID` estiverem configurados
-- se ElevenLabs nao estiver pronto, o Nexus cai para o provider interno sem exigir mudanca no frontend
+- `TTS_PROVIDER=internal` usa a voz local
+- `TTS_PROVIDER=elevenlabs` usa ElevenLabs se a chave e a voz estiverem configuradas
+- o frontend nao precisa mudar quando o provider muda
 
 ## Observacao
 
-Se voce quer apenas o fluxo local Codex -> Nexus -> Antigravity, `Telegram` nao e necessario. Ele so entra quando voce quiser transporte remoto ou notificacoes.
+O Nexus ja funciona como plataforma de integracao entre Codex e Antigravity. O ponto critico para automacao completa e a disponibilidade do CDP do Antigravity. Sem ele, o fluxo continua, mas entra em assistencia manual.

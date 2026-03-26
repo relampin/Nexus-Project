@@ -9,7 +9,7 @@ export const commandRequestSchema = z.object({
   kind: commandKindSchema,
   payload: z.record(z.string(), z.unknown()).default({}),
   meta: z.object({
-    channel: z.enum(["api", "ui", "telegram"]).optional(),
+    channel: z.enum(["api", "ui", "bridge"]).optional(),
     delegatedBy: agentNameSchema.optional(),
     projectId: z.string().min(1).optional(),
     guardrail: z.object({
@@ -18,13 +18,10 @@ export const commandRequestSchema = z.object({
       correctionForId: z.string().optional(),
       autoCorrectionDepth: z.number().optional(),
     }).optional(),
-    telegram: z.object({
-      replyChatId: z.number().optional(),
-      targetChatId: z.number().optional(),
-      inboundMessageId: z.number().optional(),
-      relaySentAt: z.string().optional(),
+    delivery: z.object({
+      mode: z.enum(["cdp", "manual"]).optional(),
+      deliveredAt: z.string().optional(),
       promptInjectedAt: z.string().optional(),
-      statusNotifiedAt: z.string().optional(),
     }).optional(),
   }).optional(),
 });
@@ -38,13 +35,4 @@ export const uiDispatchSchema = z.object({
   payload: z.object({
     text: z.string().min(1),
   }).optional(),
-});
-
-export const telegramRelaySchema = z.object({
-  sender: agentNameSchema,
-  target: z.enum(["antigravity", "codex"]),
-  text: z.string().min(1),
-  kind: commandKindSchema.default("task"),
-  replyChatId: z.number().optional(),
-  delegatedBy: agentNameSchema.optional(),
 });

@@ -6,27 +6,26 @@ import { createDiagnosticsRouter } from "./routes/diagnostics";
 import { resolveNexusPath, getTargetProjectRoot } from "./core/paths";
 import { createProjectsRouter } from "./routes/projects";
 import { createStoreRouter } from "./routes/store";
-import { createTelegramRouter } from "./routes/telegram";
 import { createUiRouter } from "./routes/ui";
 import { createWorkerRouter } from "./routes/worker";
+import { AntigravityBridge } from "./services/antigravityBridge";
 import { IntegrationRuntime } from "./services/runtime";
-import { TelegramBridge } from "./services/telegram";
 
 export function createApp() {
   const app = express();
   const runtime = new IntegrationRuntime();
-  const telegram = new TelegramBridge(runtime);
+  const antigravityBridge = new AntigravityBridge(runtime);
   const nexusFrontendDirectory = resolveNexusPath("frontend");
   const getTargetProjectFrontendDirectory = () => join(getTargetProjectRoot(), "frontend");
   const getStoreFrontendDirectory = () => join(getTargetProjectRoot(), "frontend", "store");
 
   runtime.start();
-  telegram.start();
+  antigravityBridge.start();
   app.locals.runtime = runtime;
-  app.locals.telegram = telegram;
+  app.locals.antigravityBridge = antigravityBridge;
   app.locals.shutdown = () => {
     runtime.stop();
-    telegram.stop();
+    antigravityBridge.stop();
   };
 
   app.use((_req, res, next) => {
@@ -85,7 +84,6 @@ export function createApp() {
   app.use("/diagnostics", createDiagnosticsRouter(runtime));
   app.use("/projects", createProjectsRouter(runtime));
   app.use("/store-api", createStoreRouter());
-  app.use("/telegram", createTelegramRouter(telegram));
   app.use("/ui", createUiRouter(runtime));
   app.use("/worker", createWorkerRouter(runtime));
   app.use("/app", express.static(nexusFrontendDirectory, {

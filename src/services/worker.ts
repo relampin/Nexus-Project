@@ -57,104 +57,102 @@ export class WorkerService {
         continue;
       }
 
-      if (external.channel === "telegram") {
-        if (external.provider === "antigravity") {
-          const responseFile = external.logFile ?? external.responseFile;
+      if (external.provider === "antigravity") {
+        const responseFile = external.logFile ?? external.responseFile;
 
-          if (!existsSync(responseFile)) {
+        if (!existsSync(responseFile)) {
+          continue;
+        }
+
+        try {
+          const raw = readFileSync(responseFile, "utf-8").trim();
+
+          if (!raw) {
             continue;
           }
 
-          try {
-            const raw = readFileSync(responseFile, "utf-8").trim();
+          const inspection = inspectAntigravityGuardrails(command, raw);
 
-            if (!raw) {
-              continue;
-            }
+          if (inspection?.missingLogSections.length) {
+            throw new Error(`Log do Antigravity incompleto. Faltando secoes: ${inspection.missingLogSections.join(", ")}`);
+          }
 
-            const inspection = inspectAntigravityGuardrails(command, raw);
+          if (inspection?.violatingFiles.length && external.monitor?.stopOnViolation) {
+            throw new Error(`Antigravity saiu do escopo permitido: ${inspection.violatingFiles.join(", ")}`);
+          }
 
-            if (inspection?.missingLogSections.length) {
-              throw new Error(`Log do Antigravity incompleto. Faltando secoes: ${inspection.missingLogSections.join(", ")}`);
-            }
+          const review = createAntigravityReviewReport(command, raw);
+          const reviewFile = external.reviewFile ?? external.monitor?.reviewFile;
+          const sessionEvidence = this.antigravityMonitor.getJobEvidence(command.id) ?? null;
 
-            if (inspection?.violatingFiles.length && external.monitor?.stopOnViolation) {
-              throw new Error(`Antigravity saiu do escopo permitido: ${inspection.violatingFiles.join(", ")}`);
-            }
+          if (reviewFile) {
+            writeAntigravityReviewReport(reviewFile, review);
+          }
 
-            const review = createAntigravityReviewReport(command, raw);
-            const reviewFile = external.reviewFile ?? external.monitor?.reviewFile;
-            const sessionEvidence = this.antigravityMonitor.getJobEvidence(command.id) ?? null;
+          this.logger.logReviewResult(command, review.summary);
+          this.appendProjectLog(command, {
+            agent: "system",
+            action: "antigravity.review",
+            status: review.status === "failed" ? "warning" : "success",
+            summary: review.summary,
+            details: reviewFile,
+          });
 
-            if (reviewFile) {
-              writeAntigravityReviewReport(reviewFile, review);
-            }
+          if (review.status === "failed") {
+            const correction = this.enqueueAntigravityCorrection(command, review, reviewFile);
+            const correctionMessage = correction
+              ? ` Review de correcao criado: ${correction.id}.`
+              : "";
 
-            this.logger.logReviewResult(command, review.summary);
-            this.appendProjectLog(command, {
-              agent: "system",
-              action: "antigravity.review",
-              status: review.status === "failed" ? "warning" : "success",
-              summary: review.summary,
-              details: reviewFile,
-            });
+            throw new Error(`Review automatico falhou: ${review.summary}.${correctionMessage}`.trim());
+          }
 
-            if (review.status === "failed") {
-              const correction = this.enqueueAntigravityCorrection(command, review, reviewFile);
-              const correctionMessage = correction
-                ? ` Review de correcao criado: ${correction.id}.`
-                : "";
-
-              throw new Error(`Review automatico falhou: ${review.summary}.${correctionMessage}`.trim());
-            }
-
-            const completed = this.queue.markCompleted(command.id, {
+          const completed = this.queue.markCompleted(command.id, {
+            provider: external.provider,
+            responseFile,
+            message: this.buildAntigravitySummary(raw, command.id),
+            data: {
               provider: external.provider,
-              responseFile,
-              message: this.buildAntigravitySummary(raw, command.id),
-              data: {
-                provider: external.provider,
-                response: {
-                  status: "ok",
-                  summary: this.buildAntigravitySummary(raw, command.id),
-                  details: raw,
-                  finishedAt: new Date().toISOString(),
-                },
-                monitor: {
-                  guardrails: inspection ?? null,
-                  session: sessionEvidence,
-                },
-                review,
-                reviewFile: reviewFile ?? null,
-              },
-            });
-
-            if (completed) {
-              this.logger.logCompleted(completed);
-              this.appendProjectLog(completed, {
-                agent: external.provider,
-                action: `command.${completed.kind}.completed`,
-                status: "success",
+              response: {
+                status: "ok",
                 summary: this.buildAntigravitySummary(raw, command.id),
-                details: responseFile,
-              });
-              this.triggerValidation(completed.meta?.projectId, "external-complete");
-              collected += 1;
-            }
-          } catch (error) {
-            const message = error instanceof Error ? error.message : "Invalid external response";
-            const failed = this.queue.markFailed(command.id, message);
+                details: raw,
+                finishedAt: new Date().toISOString(),
+              },
+              monitor: {
+                guardrails: inspection ?? null,
+                session: sessionEvidence,
+              },
+              review,
+              reviewFile: reviewFile ?? null,
+            },
+          });
 
-            if (failed) {
-              this.logger.logFailed(failed, message);
-              this.appendProjectLog(failed, {
-                agent: failed.target,
-                action: `command.${failed.kind}.failed`,
-                status: "error",
-                summary: message,
-              });
-              collected += 1;
-            }
+          if (completed) {
+            this.logger.logCompleted(completed);
+            this.appendProjectLog(completed, {
+              agent: external.provider,
+              action: `command.${completed.kind}.completed`,
+              status: "success",
+              summary: this.buildAntigravitySummary(raw, command.id),
+              details: responseFile,
+            });
+            this.triggerValidation(completed.meta?.projectId, "external-complete");
+            collected += 1;
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Invalid external response";
+          const failed = this.queue.markFailed(command.id, message);
+
+          if (failed) {
+            this.logger.logFailed(failed, message);
+            this.appendProjectLog(failed, {
+              agent: failed.target,
+              action: `command.${failed.kind}.failed`,
+              status: "error",
+              summary: message,
+            });
+            collected += 1;
           }
         }
 
@@ -253,9 +251,6 @@ export class WorkerService {
         guardrail: {
           correctionForId: command.id,
           autoCorrectionDepth: currentDepth + 1,
-        },
-        telegram: {
-          replyChatId: command.meta?.telegram?.replyChatId,
         },
       },
     };

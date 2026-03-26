@@ -247,7 +247,7 @@ export class AntigravitySessionMonitor {
       score += 1;
     }
 
-    const promptInjectedAt = command.meta?.telegram?.promptInjectedAt;
+    const promptInjectedAt = command.meta?.delivery?.promptInjectedAt;
     const secondsSincePrompt = this.secondsBetween(promptInjectedAt, observedAt);
     const secondsSinceVisibleChange = this.secondsBetween(lastChangedAt, observedAt);
     let status: MonitorJobStatus = "unseen";

@@ -27,13 +27,10 @@ export interface AntigravityGuardrailPayload {
   stopOnViolation?: boolean;
 }
 
-export interface TelegramCommandMeta {
-  replyChatId?: number;
-  targetChatId?: number;
-  inboundMessageId?: number;
-  relaySentAt?: string;
+export interface DeliveryCommandMeta {
+  mode?: "cdp" | "manual";
+  deliveredAt?: string;
   promptInjectedAt?: string;
-  statusNotifiedAt?: string;
 }
 
 export interface GuardrailCommandMeta {
@@ -44,13 +41,13 @@ export interface GuardrailCommandMeta {
 }
 
 export interface CommandMeta {
-  channel?: "api" | "ui" | "telegram";
+  channel?: "api" | "ui" | "bridge";
   delegatedBy?: AgentName;
   projectId?: string;
   taskId?: string;
   taskTitle?: string;
   initiatedFrom?: "agenda" | "manual_dispatch" | "automation";
-  telegram?: TelegramCommandMeta;
+  delivery?: DeliveryCommandMeta;
   guardrail?: GuardrailCommandMeta;
 }
 
@@ -96,7 +93,7 @@ export interface AdapterResult {
 export interface ExternalDispatch {
   provider: "antigravity" | "codex";
   projectRoot: string;
-  channel?: "file" | "telegram";
+  channel?: "file" | "cdp" | "manual";
   requestFile: string;
   responseFile: string;
   logFile?: string;

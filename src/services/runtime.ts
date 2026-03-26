@@ -22,6 +22,7 @@ import {
   ProjectWorkspaceSnapshot,
 } from "../projects/types";
 import { isInvalidatedCommand, isInvalidatedProjectLog } from "./auditHeuristics";
+import { inspectAntigravityGuardrails } from "./antigravityGuard";
 import { AntigravitySessionMonitor } from "./antigravitySessionMonitor";
 import { InformalLogger } from "./logger";
 import { Orchestrator } from "./orchestrator";
@@ -84,7 +85,7 @@ export class IntegrationRuntime {
               provider: "antigravity",
               requestFile: command.external.requestFile,
               responseFile: command.external.responseFile,
-              hint: "Telegram aciona o job e o Nexus injeta o prompt no IDE do Antigravity via CDP. O fechamento acontece pelo arquivo de log.",
+              hint: "O Nexus tenta entregar o handoff via CDP. Se o CDP nao estiver disponivel, o job segue em assistencia manual ate o Antigravity receber o request.",
             }
           : null,
       monitor:
@@ -118,50 +119,22 @@ export class IntegrationRuntime {
     return record;
   }
 
-  markTelegramRelaySent(id: string, targetChatId: number) {
+  markAntigravityPromptInjected(id: string) {
     const updated = this.queue.update(id, (command) => ({
       ...command,
       external: command.external
         ? {
             ...command.external,
-            channel: "telegram",
-            message: `Job enviado ao Antigravity via Telegram (chat ${targetChatId}).`,
-          }
-        : command.external,
-      meta: {
-        ...command.meta,
-        telegram: {
-          ...command.meta?.telegram,
-          targetChatId,
-          relaySentAt: new Date().toISOString(),
-        },
-      },
-      updatedAt: new Date().toISOString(),
-    }));
-
-    this.appendCommandProjectLog(updated, {
-      agent: "system",
-      action: "telegram.relay",
-      status: "info",
-      summary: `Job enviado ao chat ${targetChatId}.`,
-    });
-
-    return updated;
-  }
-
-  markTelegramPromptInjected(id: string) {
-    const updated = this.queue.update(id, (command) => ({
-      ...command,
-      external: command.external
-        ? {
-            ...command.external,
+            channel: "cdp",
             message: "Prompt injetado no Antigravity via CDP.",
           }
         : command.external,
       meta: {
         ...command.meta,
-        telegram: {
-          ...command.meta?.telegram,
+        delivery: {
+          ...command.meta?.delivery,
+          mode: "cdp",
+          deliveredAt: new Date().toISOString(),
           promptInjectedAt: new Date().toISOString(),
         },
       },
@@ -173,29 +146,6 @@ export class IntegrationRuntime {
       action: "antigravity.prompt_injected",
       status: "info",
       summary: "Prompt injetado no Antigravity via CDP.",
-    });
-
-    return updated;
-  }
-
-  markTelegramStatusNotified(id: string) {
-    const updated = this.queue.update(id, (command) => ({
-      ...command,
-      meta: {
-        ...command.meta,
-        telegram: {
-          ...command.meta?.telegram,
-          statusNotifiedAt: new Date().toISOString(),
-        },
-      },
-      updatedAt: new Date().toISOString(),
-    }));
-
-    this.appendCommandProjectLog(updated, {
-      agent: "system",
-      action: "telegram.status_notified",
-      status: "info",
-      summary: "Status final notificado no Telegram.",
     });
 
     return updated;
@@ -225,54 +175,14 @@ export class IntegrationRuntime {
     return updated;
   }
 
-  completeExternalTelegramCommand(id: string, agent: "antigravity" | "codex", summary: string, details?: string) {
-    const completed = this.queue.markCompleted(id, {
-      message: summary,
-      data: {
-        provider: agent,
-        response: {
-          status: "ok",
-          summary,
-          details: details ?? summary,
-          finishedAt: new Date().toISOString(),
-        },
-      },
-    });
-
-    if (completed) {
-      this.logger.logCompleted(completed);
-      this.appendCommandProjectLog(completed, {
-        agent,
-        action: `command.${completed.kind}.completed`,
-        status: "success",
-        summary,
-        details,
-      });
-    }
-
-    return completed;
-  }
-
-  failExternalTelegramCommand(id: string, error: string) {
-    const failed = this.queue.markFailed(id, error);
-
-    if (failed) {
-      this.logger.logFailed(failed, error);
-      this.appendCommandProjectLog(failed, {
-        agent: failed.target,
-        action: `command.${failed.kind}.failed`,
-        status: "error",
-        summary: error,
-      });
-    }
-
-    return failed;
-  }
-
-  listPendingTelegramDelegations() {
+  listPendingAntigravityDelegations() {
     return this.queue
       .list()
-      .filter((command) => command.status === "awaiting_external" && command.external?.channel === "telegram");
+      .filter((command) => command.status === "awaiting_external" && command.external?.provider === "antigravity");
+  }
+
+  inspectAntigravityGuardrails(command: CommandRecord) {
+    return inspectAntigravityGuardrails(command);
   }
 
   getUiSnapshot() {
@@ -296,7 +206,7 @@ export class IntegrationRuntime {
       activeProjectId,
       agents: [
         { id: "codex", label: "Codex", executor: "openclaw", mode: "automatic" },
-        { id: "antigravity", label: "Antigravity", executor: "telegram+cdp", mode: "delegated" },
+        { id: "antigravity", label: "Antigravity", executor: "cdp+manual", mode: "delegated" },
       ],
       kinds: ["task", "note", "ping", "list_pending", "status_summary"],
       commands: activeProject?.commands ?? this.queue.list().slice(0, 20).map((command) => this.toUiCommand(command)),

@@ -8,7 +8,7 @@ export class AntigravityAdapter implements AgentAdapter {
   name = "antigravity" as const;
 
   async execute(command: CommandRecord, context: AdapterContext): Promise<DispatchResult> {
-    const external = this.createTelegramDispatch(command, context);
+    const external = this.createBridgeDispatch(command, context);
 
     return {
       mode: "external",
@@ -16,7 +16,7 @@ export class AntigravityAdapter implements AgentAdapter {
     };
   }
 
-  private createTelegramDispatch(command: CommandRecord, context: AdapterContext): ExternalDispatch {
+  private createBridgeDispatch(command: CommandRecord, context: AdapterContext): ExternalDispatch {
     const projectRoot = context.getProjectRoot(command.meta?.projectId);
     const jobDirectory = join(projectRoot, "bridge", "antigravity", "jobs", command.id);
     const requestFile = join(jobDirectory, "request.md");
@@ -32,14 +32,14 @@ export class AntigravityAdapter implements AgentAdapter {
     return {
       provider: "antigravity",
       projectRoot,
-      channel: "telegram",
+      channel: "manual",
       requestFile,
       responseFile: logFile,
       logFile,
       reviewFile: monitor?.reviewFile,
       requestText: String(command.payload.text ?? ""),
       dispatchedAt: new Date().toISOString(),
-      message: "Handoff preparado para o Antigravity. A entrega depende de um canal ativo via Telegram ou CDP.",
+      message: "Handoff preparado para o Antigravity. O Nexus vai tentar entregar via CDP; se nao conseguir, o job fica em assistencia manual.",
       monitor,
     };
   }
