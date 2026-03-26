@@ -820,11 +820,19 @@ textarea {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.85rem;
 }
+.radar-priority-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
 .radar-card {
   padding: 0.95rem;
   border-radius: 10px;
   border: 1px solid rgba(255,255,255,0.06);
   background: rgba(0,0,0,0.2);
+}
+.radar-card-priority {
+  background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(0,0,0,0.18));
 }
 .radar-card-title {
   font-size: 0.74rem;
@@ -873,13 +881,170 @@ textarea {
   font-weight: 700;
 }
 
+.operational-hub {
+  border-color: rgba(6, 182, 212, 0.36);
+  background: linear-gradient(135deg, rgba(8, 20, 30, 0.94), rgba(10, 14, 26, 0.82));
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.hub-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.eyebrow {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--secondary);
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+.hub-title {
+  font-size: clamp(1.5rem, 2.5vw, 2.1rem);
+  line-height: 1.15;
+  margin-bottom: 0.35rem;
+}
+.hub-subline {
+  color: var(--text-muted);
+  line-height: 1.55;
+  max-width: 58rem;
+}
+.hub-badges, .action-bar, .metric-rail, .search-shell, .progress-stack, .digest-strip {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.hub-card, .digest-box, .mini-card {
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.18);
+}
+.hub-copy, .search-meta {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.agenda-summary, .mini-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.agenda-tile, .mini-card {
+  padding: 0.85rem;
+  border-radius: 10px;
+  text-align: center;
+}
+.agenda-tile span, .mini-card strong {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.agenda-tile small, .mini-card span {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.68rem;
+}
+.action-stack, .board-stack, .search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.empty-state {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 0.9rem;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+}
+.search-shell {
+  align-items: center;
+}
+.search-shell .input-light {
+  min-width: 0;
+}
+.search-results {
+  margin-top: 0.75rem;
+}
+.search-item, .board-item, .git-item, .validation-item, .digest-item, .timeline-item.compact, .log-card.compact {
+  padding: 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.03);
+}
+.search-item button, .board-item button, .git-item button, .validation-item button, .digest-item button {
+  margin-top: 0.65rem;
+}
+.search-title, .board-title, .git-title, .validation-title, .digest-title {
+  font-weight: 700;
+  line-height: 1.4;
+}
+.search-meta-row, .board-meta-row, .git-meta-row, .validation-meta-row, .digest-meta-row {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.35rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.digest-strip {
+  align-items: stretch;
+}
+.digest-box {
+  flex: 1;
+  padding: 1rem;
+  border-radius: 12px;
+}
+.progress-line {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 0.5rem;
+  align-items: center;
+}
+.progress-line span {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.task-actions, .git-actions, .validation-actions, .digest-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.65rem;
+}
+.project-timeline-panel .timeline-item {
+  margin-left: 0.15rem;
+}
+.project-timeline-panel .timeline-item.compact {
+  padding: 0.85rem 0.9rem 0.85rem 1rem;
+}
+
 @media (max-width: 860px) {
+  .hub-grid {
+    grid-template-columns: 1fr;
+  }
+  .agenda-summary, .mini-grid {
+    grid-template-columns: 1fr;
+  }
   .commands-rail-copy {
     flex-direction: column;
   }
   .logs-rail-top {
     grid-template-columns: 1fr;
   }
+  .radar-priority-grid,
   .radar-grid,
   .radar-stats {
     grid-template-columns: 1fr;
@@ -1201,6 +1366,20 @@ pre { background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 8px; border: 1p
                                 <div id="radarStateBadge" class="badge">--</div>
                             </div>
                             <div id="radarCopy" class="radar-copy">O Nexus vai preencher esta leitura com o que entendeu do projeto ativo.</div>
+                            <div class="radar-priority-grid">
+                                <div class="radar-card radar-card-priority">
+                                    <div class="radar-card-title">Risco principal</div>
+                                    <div id="radarMainRisk" class="radar-list-item">Nenhum risco mapeado ainda.</div>
+                                </div>
+                                <div class="radar-card radar-card-priority">
+                                    <div class="radar-card-title">Bloqueio atual</div>
+                                    <div id="radarCurrentBlocker" class="radar-list-item">Nenhum bloqueio mapeado ainda.</div>
+                                </div>
+                                <div class="radar-card radar-card-priority">
+                                    <div class="radar-card-title">Proxima entrega recomendada</div>
+                                    <div id="radarNextDelivery" class="radar-list-item">Nenhuma entrega recomendada ainda.</div>
+                                </div>
+                            </div>
                             <div class="radar-grid">
                                 <div class="radar-card">
                                     <div class="radar-card-title">Próximos checkpoints</div>
@@ -1403,6 +1582,8 @@ const API_BASE = '';
 let liveSocket;
 let liveFallbackSse;
 let wsReconnectTimer;
+let bootstrapPollTimer;
+let liveTransportSeq = 0;
 let globalState = {
     projects: [],
     activeProject: null,
@@ -1511,6 +1692,235 @@ function repairVisibleText(root = document.body) {
 function textOrFallback(value, fallback = '') {
     const normalized = normalizeDisplayText(value);
     return normalized || fallback;
+}
+
+let dashboardShellBuilt = false;
+let projectSearchTimer = null;
+let projectDetailsTimer = null;
+let projectDetailsLoadedFor = null;
+
+function buildDashboardShell() {
+    const container = document.getElementById('dashboardContainer');
+    if (!container || dashboardShellBuilt) return;
+
+    container.innerHTML = `
+        <section class="glass-panel operational-hub" id="projectDirectionHero">
+            <div class="hub-top">
+                <div>
+                    <div class="eyebrow">Agenda operacional</div>
+                    <h2 id="directionHeadline" class="hub-title">Sem rumo definido ainda.</h2>
+                    <div id="directionSubline" class="hub-subline">O painel vai destacar a próxima entrega que move o projeto.</div>
+                </div>
+                <div class="hub-badges">
+                    <span id="directionStateBadge" class="badge">ACTIVE</span>
+                    <span id="directionHealthBadge" class="badge">STEADY</span>
+                    <span id="radarStateBadge" class="badge">--</span>
+                </div>
+            </div>
+            <div class="hub-grid">
+                <div class="glass-panel hub-card">
+                    <div class="panel-header">
+                        <h2>Próxima ação da agenda</h2>
+                    </div>
+                    <div class="focus-alert" id="focusAlert">Aponte o foco atual do projeto.</div>
+                    <div id="agendaGoal" class="hub-copy">O Nexus ainda vai traduzir milestones e tarefas em um destino pratico.</div>
+                    <div class="agenda-summary">
+                        <div class="agenda-tile"><span id="agOverdue">0</span><small>Atrasadas</small></div>
+                        <div class="agenda-tile"><span id="agToday">0</span><small>Hoje</small></div>
+                        <div class="agenda-tile"><span id="agUpcoming">0</span><small>Futuras</small></div>
+                    </div>
+                    <div id="agendaPriorityList" class="action-stack"><div class="empty-state">Nenhuma tarefa priorizada ainda.</div></div>
+                </div>
+                <div class="glass-panel hub-card">
+                    <div class="panel-header">
+                        <h2>Busca global</h2>
+                    </div>
+                    <div class="search-shell">
+                        <input id="projectSearchInput" class="input-light" type="search" placeholder="Buscar tarefas, logs, comandos, arquivos e resumo" oninput="queueGlobalSearch(this.value)">
+                        <button class="btn-secondary" type="button" onclick="runGlobalSearchFromInput()">Buscar</button>
+                    </div>
+                    <div id="searchMeta" class="search-meta">Digite para procurar no snapshot ativo.</div>
+                    <div id="searchResults" class="search-results"><div class="empty-state">Os resultados aparecem aqui.</div></div>
+                </div>
+            </div>
+            <div class="hub-footer">
+                <div class="metric-rail">
+                    <div class="metric-pill"><span>Geral</span><strong id="mOverall">0%</strong></div>
+                    <div class="metric-pill"><span>Tarefas</span><strong id="mTasks">0%</strong></div>
+                    <div class="metric-pill"><span>Marcos</span><strong id="mMilestones">0%</strong></div>
+                    <div class="metric-pill"><span>Comandos</span><strong id="mCommands">0%</strong></div>
+                </div>
+                <div class="progress-stack">
+                    <div class="progress-line"><span>Geral</span><div class="progress-track"><div class="progress-fill" id="mOverallBar"></div></div></div>
+                    <div class="progress-line"><span>Tarefas</span><div class="progress-track"><div class="progress-fill" id="mTasksBar"></div></div></div>
+                    <div class="progress-line"><span>Marcos</span><div class="progress-track"><div class="progress-fill" id="mMilestonesBar"></div></div></div>
+                    <div class="progress-line"><span>Comandos</span><div class="progress-track"><div class="progress-fill" id="mCommandsBar"></div></div></div>
+                </div>
+            </div>
+        </section>
+
+        <div class="content-grid">
+            <div class="panel-col">
+                <div class="glass-panel" id="taskBoardPanel">
+                    <div class="panel-header"><h2>taskBoard e agenda operacional</h2></div>
+                    <div id="taskBoardList" class="board-stack"><div class="empty-state">Nenhuma tarefa carregada ainda.</div></div>
+                </div>
+                <div class="glass-panel" id="gitPanel">
+                    <div class="panel-header"><h2>Integração com Git</h2></div>
+                    <div id="gitBranch" class="hub-copy">Branch: --</div>
+                    <div id="gitSummary" class="search-meta">Mudanças e commits recentes aparecem aqui.</div>
+                    <div class="mini-grid">
+                        <div class="mini-card"><span>Arquivos alterados</span><strong id="gitChangedFiles">0</strong></div>
+                        <div class="mini-card"><span>Commits recentes</span><strong id="gitRecentCommits">0</strong></div>
+                        <div class="mini-card"><span>Status</span><strong id="gitStatus">--</strong></div>
+                    </div>
+                    <div id="gitChangesList" class="action-stack"><div class="empty-state">Nenhuma mudança detectada.</div></div>
+                    <div id="gitCommitsList" class="action-stack" style="margin-top:0.85rem;"><div class="empty-state">Nenhum commit recente listado.</div></div>
+                </div>
+                <div class="glass-panel" id="validationPanel">
+                    <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+                        <h2>Validação automática</h2>
+                        <button id="btnRunValidation" class="btn-secondary" type="button" onclick="runProjectValidation()">Rodar validação</button>
+                    </div>
+                    <div id="validationState" class="hub-copy">Estado de validação pendente.</div>
+                    <div id="validationChecks" class="action-stack"><div class="empty-state">Sem verificações ainda.</div></div>
+                </div>
+            </div>
+            <div class="panel-col">
+                <div class="glass-panel radar-panel" id="projectRadarPanel">
+                    <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0;">
+                        <h2>Radar do Projeto</h2>
+                        <div id="radarStateBadgeMirror" class="badge">--</div>
+                    </div>
+                    <div id="radarCopy" class="radar-copy">O Nexus vai preencher esta leitura com o que entendeu do projeto ativo.</div>
+                    <div id="radarActions" class="action-bar">
+                        <button class="btn-secondary" type="button" onclick="triggerRadarAction('sync')">Sincronizar</button>
+                        <button class="btn-secondary" type="button" onclick="triggerRadarAction('clarify')">Esclarecer foco</button>
+                        <button class="btn-secondary" type="button" onclick="triggerRadarAction('dispatch')">Enviar próximo passo</button>
+                    </div>
+                    <div class="radar-priority-grid">
+                        <div class="radar-card radar-card-priority"><div class="radar-card-title">Risco principal</div><div id="radarMainRisk" class="radar-list-item">Nenhum risco mapeado ainda.</div></div>
+                        <div class="radar-card radar-card-priority"><div class="radar-card-title">Bloqueio atual</div><div id="radarCurrentBlocker" class="radar-list-item">Nenhum bloqueio mapeado ainda.</div></div>
+                        <div class="radar-card radar-card-priority"><div class="radar-card-title">Próxima entrega recomendada</div><div id="radarNextDelivery" class="radar-list-item">Nenhuma entrega recomendada ainda.</div></div>
+                    </div>
+                    <div class="radar-grid">
+                        <div class="radar-card"><div class="radar-card-title">Próximos checkpoints</div><div id="radarChecklist" class="radar-list"><div class="radar-list-item">Nenhum checkpoint mapeado ainda.</div></div></div>
+                        <div class="radar-card"><div class="radar-card-title">Saúde operacional</div><div id="radarStats" class="radar-stats"><div class="radar-stat"><div class="radar-stat-label">Tarefas abertas</div><div class="radar-stat-value">0</div></div></div></div>
+                    </div>
+                </div>
+                <div class="glass-panel" id="projectSummarySection" style="display:none; flex-direction:column; gap:1rem;">
+                    <div class="panel-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;">
+                        <div>
+                            <h2 style="display:flex; align-items:center; gap:0.5rem; font-size:1.15rem; color: var(--secondary);">
+                                <span style="font-size:1.1rem;">O que mudou hoje</span>
+                            </h2>
+                            <div id="summaryMeta" style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;">Atualizado em: --</div>
+                        </div>
+                        <div id="audioPlayerContainer" style="display:flex; gap:0.75rem; align-items:center; background: rgba(0,0,0,0.3); padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid var(--border);">
+                            <span id="audioStatusBadge" class="badge" style="background: rgba(255,255,255,0.1); color: var(--text-muted); font-size: 0.65rem;">AGUARDANDO</span>
+                            <button id="btnPlayAudio" class="btn-secondary" style="padding: 0.4rem 0.75rem; display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; border-color: rgba(6, 182, 212, 0.4); color: var(--secondary);" onclick="toggleAudio(event)" disabled>Carregando</button>
+                        </div>
+                    </div>
+                    <div id="summaryContent" style="color:#e4e4e7; line-height:1.6; font-size:0.95rem; display:flex; flex-direction:column; gap:1rem; border-top:1px solid var(--border); padding-top:1rem;"><div style="padding:1rem; text-align:center; color:var(--text-muted); font-style:italic;">Carregando resumo do projeto...</div></div>
+                    <div class="digest-strip">
+                        <div class="digest-box">
+                            <div class="radar-card-title">Resumo do dia</div>
+                            <div id="digestSummary" class="hub-copy">Nenhum digest carregado ainda.</div>
+                        </div>
+                        <div class="digest-box">
+                            <div class="radar-card-title">Mudanças recentes</div>
+                            <div id="digestTodayList" class="action-stack"><div class="empty-state">Sem itens no digest.</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-panel project-timeline-panel">
+                    <div class="panel-header"><h2>Timeline real do projeto</h2></div>
+                    <div id="projectTimeline" class="timeline"></div>
+                </div>
+            </div>
+            <div class="panel-col">
+                <div id="manualAssistWarning" class="alert-box manual-assist-hidden">
+                    <div class="alert-icon">⚠️</div>
+                    <div class="alert-content">
+                        <div class="alert-title">Ação manual requerida</div>
+                        <div class="alert-text" id="manualAssistText">Há jobs aguardando.</div>
+                    </div>
+                </div>
+                <div class="glass-panel">
+                    <div class="panel-header"><h2>Disparar comando</h2></div>
+                    <form class="dispatch-form" id="dispatchForm" onsubmit="dispatchCommand(event)">
+                        <div class="form-row">
+                            <select id="f-source" class="input-light"><option>orquestrador</option><option>codex</option><option>antigravity</option></select>
+                            <select id="f-target" class="input-light"><option>codex</option><option>antigravity</option><option>system</option></select>
+                        </div>
+                        <textarea id="f-text" placeholder="Descreva a tarefa ou comando..."></textarea>
+                        <button class="btn-primary full-width" type="submit">Enviar comando</button>
+                    </form>
+                </div>
+                <div class="glass-panel">
+                    <div class="panel-header"><h2>Fila global</h2></div>
+                    <div class="queue-stats" id="queueStatsBox">--</div>
+                </div>
+                <div class="glass-panel" id="auditSection" style="display:none; border-color: rgba(16, 185, 129, 0.3);">
+                    <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+                        <h2 style="color: var(--success); font-size: 1.1rem; font-weight: 600; margin: 0;">Nexus Audit</h2>
+                        <div id="auditBadge" class="badge">--</div>
+                    </div>
+                    <div id="auditContent" style="font-size: 0.85rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;"></div>
+                </div>
+            </div>
+        </div>
+
+        <section class="glass-panel workspace-rail-panel" style="margin-top: 1.5rem; border-color: rgba(6, 182, 212, 0.28); background: rgba(18, 18, 20, 0.75);">
+            <div class="commands-rail-copy">
+                <div class="panel-header" style="margin-bottom: 0;">
+                    <h2 style="color: var(--secondary); font-size: 1.1rem; font-weight: 600; margin: 0;">Workspace</h2>
+                    <div class="commands-rail-hint">Arquivos indexados e trechos relevantes do workspace.</div>
+                </div>
+                <div id="filesCountBadge" class="badge" style="background:rgba(6, 182, 212, 0.1); border:1px solid rgba(6, 182, 212, 0.2); color:var(--secondary); font-size:0.65rem;">0 arquivos</div>
+            </div>
+            <div id="filesSynopsis" style="font-size: 0.85rem; color: var(--text); line-height: 1.6; background: rgba(255,255,255,0.02); border-radius: 8px; padding: 1rem; border: 1px solid rgba(255,255,255,0.05);">O Nexus ainda está lendo o workspace...</div>
+            <div id="filesStats" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:0.5rem;"></div>
+            <div id="filesList" class="file-list-rail"><div style="color: var(--text-muted); font-size: 0.85rem; padding: 1rem; text-align: center; border: 1px dashed var(--border); border-radius: 8px;">Nenhum arquivo indexado ainda.</div></div>
+        </section>
+
+        <section class="glass-panel logs-rail-panel" style="margin-top: 1.5rem;">
+            <div class="commands-rail-copy">
+                <div class="panel-header" style="margin-bottom: 0;">
+                    <h2>AI Logs e narrativa</h2>
+                    <div class="commands-rail-hint">Os logs ficam nesta faixa com leitura resumida, sinais recentes e cards horizontais para abrir eventos específicos.</div>
+                </div>
+            </div>
+            <div id="logsScopeInfo" style="font-size: 0.78rem; color: var(--text-muted);">Carregando escopo dos logs...</div>
+            <div class="logs-rail-top">
+                <div class="logs-summary-card">
+                    <div class="auto-narrative" id="autoNarrativeBox" style="margin-bottom: 0.85rem;">Resumo automático gerado pelo Nexus aparecerá aqui...</div>
+                    <div class="agent-stats" id="agentStatsBox" style="margin-bottom: 0;"></div>
+                </div>
+                <div id="logReaderSummary" class="logs-summary-card" style="border: 1px solid rgba(6, 182, 212, 0.18); background: rgba(6, 182, 212, 0.06);">
+                    <div style="display:flex; justify-content:space-between; gap:0.75rem; align-items:center; margin-bottom:0.65rem; flex-wrap:wrap;">
+                        <div style="font-size:0.76rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--secondary); font-weight:600;">Leitura automatizada dos logs</div>
+                        <div id="logReaderStatus" style="font-size:0.76rem; color:var(--text-muted);">Aguardando sinais do projeto...</div>
+                    </div>
+                    <div id="logReaderFocus" style="font-size:0.84rem; color:var(--text); line-height:1.45; margin-bottom:0.75rem; padding:0.75rem 0.8rem; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:rgba(0,0,0,0.12);">A IA ainda não tem foco sugerido a partir dos logs.</div>
+                    <div id="logReaderSignals" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:0.45rem; margin-bottom:0.75rem;"></div>
+                    <div id="logReaderList" style="display:flex; flex-direction:column; gap:0.5rem;"><div style="font-size:0.84rem; color:var(--text-muted); line-height:1.45;">O painel ainda vai consolidar os sinais recentes do projeto aqui.</div></div>
+                </div>
+            </div>
+            <div id="projectActivityRail" class="logs-activity-rail"><div style="color:var(--text-muted); font-size:0.85rem;">Nenhuma atividade recente.</div></div>
+        </section>
+
+        <section class="glass-panel commands-rail-panel" style="margin-top: 1.5rem;">
+            <div class="commands-rail-copy">
+                <div class="panel-header" style="margin-bottom: 0;">
+                    <h2>Comandos Recentes</h2>
+                    <div class="commands-rail-hint">Os comandos ficam nesta trilha horizontal no rodapé do painel. Cada card mostra um resumo curto e você expande só quando quiser ver o conteúdo completo.</div>
+                </div>
+            </div>
+            <div class="command-list" id="commandsList"></div>
+        </section>
+    `;
+    dashboardShellBuilt = true;
 }
 
 function safeHtml(value) {
@@ -1730,23 +2140,240 @@ function toggleLogExpand(encodedKey) {
     }
 }
 
+function toArray(value) {
+    if (Array.isArray(value)) return value;
+    if (value && Array.isArray(value.items)) return value.items;
+    if (value && Array.isArray(value.entries)) return value.entries;
+    return [];
+}
+
+function getProjectActiveId() {
+    return globalState.activeProject?.project?.id || null;
+}
+
+async function fetchJsonMaybe(url, options = {}) {
+    try {
+        const res = await fetch(url, options);
+        const text = await res.text();
+        let data = null;
+        if (text) {
+            try { data = JSON.parse(text); } catch(_) { data = text; }
+        }
+        if (!res.ok) {
+            return { ok: false, status: res.status, data };
+        }
+        return { ok: true, status: res.status, data };
+    } catch (error) {
+        return { ok: false, error };
+    }
+}
+
+function maybeFetchText(value, fallback = '') {
+    return textOrFallback(value, fallback);
+}
+
+function normalizeTaskList(tasks) {
+    return toArray(tasks)
+        .map((task, index) => ({
+            ...task,
+            __index: index,
+            __title: maybeFetchText(task?.title || task?.name || task?.summary, 'Tarefa sem título'),
+            __status: textOrFallback(task?.status, 'pending').toLowerCase(),
+            __priority: textOrFallback(task?.priority, 'medium').toLowerCase()
+        }))
+        .filter(task => task.__title);
+}
+
+function normalizeTimelineEntries(entries) {
+    return toArray(entries).map((entry, index) => ({
+        ...entry,
+        __index: index,
+        __title: maybeFetchText(entry?.title || entry?.summary || entry?.message, 'Evento sem título'),
+        __details: maybeFetchText(entry?.details || entry?.message || entry?.summary || entry?.title, 'Sem detalhes'),
+        __kind: textOrFallback(entry?.kind || entry?.type || entry?.status, 'info').toLowerCase()
+    }));
+}
+
+async function hydrateProjectDetails(projectId) {
+    if (!projectId) return;
+    if (projectDetailsLoadedFor === projectId) return;
+    projectDetailsLoadedFor = projectId;
+
+    const endpoints = [
+        ['radar', `/projects/${projectId}/radar`],
+        ['timeline', `/projects/${projectId}/timeline`],
+        ['git', `/projects/${projectId}/git`],
+        ['validation', `/projects/${projectId}/validation`],
+        ['digest', `/projects/${projectId}/digest/daily`],
+        ['tasks', `/projects/${projectId}/tasks`]
+    ];
+
+    const results = await Promise.allSettled(endpoints.map(([, url]) => fetchJsonMaybe(`${API_BASE}${url}`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+    })));
+    const next = { ...(globalState.activeProject || {}) };
+    let hasLoadedData = false;
+
+    results.forEach((result, index) => {
+        if (result.status !== 'fulfilled' || !result.value?.ok) return;
+        hasLoadedData = true;
+        const key = endpoints[index][0];
+        const data = result.value.data;
+        if (key === 'tasks') {
+            if (data?.agendaOperational) next.agendaOperational = data.agendaOperational;
+            if (data?.agenda) next.agenda = data.agenda;
+            if (data?.taskBoard) next.taskBoard = data.taskBoard;
+            if (data?.tasks) next.tasks = data.tasks;
+        } else {
+            next[key] = data;
+        }
+    });
+
+    globalState.activeProject = next;
+    renderActiveProject();
+    if (!hasLoadedData) {
+        projectDetailsLoadedFor = null;
+    }
+}
+
+async function triggerRadarAction(actionId) {
+    const projectId = getProjectActiveId();
+    if (!projectId || !actionId) return;
+
+    const action = toArray(globalState.activeProject?.radar?.actions).find(item => String(item.id) === String(actionId));
+    if (action?.label && action.actionUrl) {
+        window.open(action.actionUrl, '_blank', 'noopener,noreferrer');
+        return;
+    }
+
+    try {
+        const result = await fetchJsonMaybe(`${API_BASE}/projects/${projectId}/radar/actions/${encodeURIComponent(actionId)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!result.ok) throw new Error('radar action failed');
+        projectDetailsLoadedFor = null;
+        await refreshBootstrap();
+    } catch (error) {
+        console.error(error);
+        alert('Não consegui executar essa ação do radar agora.');
+    }
+}
+
+async function runProjectValidation() {
+    const projectId = getProjectActiveId();
+    if (!projectId) return;
+    const btn = document.getElementById('btnRunValidation');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Validando...';
+    }
+
+    try {
+        const result = await fetchJsonMaybe(`${API_BASE}/projects/${projectId}/validation/run`, { method: 'POST' });
+        if (!result.ok) throw new Error('validation run failed');
+        projectDetailsLoadedFor = null;
+        await refreshBootstrap();
+    } catch (error) {
+        console.error(error);
+        alert('Falha ao disparar a validação automática.');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Rodar validação';
+        }
+    }
+}
+
+async function searchProject(q) {
+    const projectId = getProjectActiveId();
+    const meta = document.getElementById('searchMeta');
+    const results = document.getElementById('searchResults');
+    const query = textOrFallback(q).trim();
+
+    if (!results || !meta) return;
+    if (!projectId) {
+        results.innerHTML = '<div class="empty-state">Selecione um projeto para pesquisar.</div>';
+        return;
+    }
+    if (!query) {
+        results.innerHTML = '<div class="empty-state">Digite um termo para buscar tarefas, logs, comandos, arquivos ou resumo.</div>';
+        meta.textContent = 'Digite para procurar no snapshot ativo.';
+        return;
+    }
+
+    meta.textContent = `Pesquisando por "${query}"...`;
+    results.innerHTML = '<div class="empty-state">Buscando...</div>';
+
+    const result = await fetchJsonMaybe(`${API_BASE}/projects/${projectId}/search?q=${encodeURIComponent(query)}`);
+    if (!result.ok) {
+        results.innerHTML = '<div class="empty-state">A busca global não respondeu agora.</div>';
+        meta.textContent = 'Busca indisponível temporariamente.';
+        return;
+    }
+
+    const data = result.data || {};
+    const items = toArray(data.results || data.items || data.matches || data.data);
+    meta.textContent = `${items.length} resultado(s) para "${query}".`;
+    results.innerHTML = items.length ? items.slice(0, 8).map((item) => {
+        const title = textOrFallback(item.title || item.name || item.label || item.path || item.summary, 'Resultado');
+        const kind = textOrFallback(item.kind || item.type || item.scope || 'item').toUpperCase();
+        const excerpt = textOrFallback(item.excerpt || item.summary || item.details || item.description || '');
+        const actionText = textOrFallback(item.actionText || 'Abrir');
+        const actionId = item.commandId || item.id || item.path || '';
+        const safeAction = String(actionId).replace(/'/g, '&#39;');
+        const openHandler = item.openUrl
+            ? `window.open('${String(item.openUrl).replace(/'/g, '&#39;')}', '_blank', 'noopener,noreferrer')`
+            : (item.commandId ? `openCommandDrawer('${safeAction}')` : (item.path ? `openFilePreview('${encodeURIComponent(String(item.path))}')` : ''));
+
+        return `
+            <div class="search-item">
+                <div class="search-title">${safeHtml(title)}</div>
+                <div class="search-meta-row"><span>${safeHtml(kind)}</span>${item.scope ? `<span>${safeHtml(textOrFallback(item.scope).toUpperCase())}</span>` : ''}</div>
+                <div style="margin-top:0.5rem; color:var(--text-muted); line-height:1.5;">${safeHtml(excerpt || 'Sem trecho adicional.')}</div>
+                ${openHandler ? `<div class="task-actions"><button class="btn-secondary" type="button" onclick="${openHandler}">${safeHtml(actionText)}</button></div>` : ''}
+            </div>
+        `;
+    }).join('') : '<div class="empty-state">Nenhum resultado encontrado para esta busca.</div>';
+}
+
+function queueGlobalSearch(value) {
+    clearTimeout(projectSearchTimer);
+    projectSearchTimer = setTimeout(() => searchProject(value), 250);
+}
+
+function runGlobalSearchFromInput() {
+    const input = document.getElementById('projectSearchInput');
+    if (input) searchProject(input.value);
+}
+
 async function init() {
+    buildDashboardShell();
+    updateRealtimeStatus(false, 'Carregando painel...');
     try {
         await refreshBootstrap();
-        setupRealtime();
     } catch(e) {
         console.error("Failed to bootstrap UX", e);
+    } finally {
+        updateRealtimeStatus(true, 'Snapshot local');
+        startBootstrapPolling();
+        setupRealtime();
     }
 }
 
 async function refreshBootstrap() {
-    const res = await fetch(`${API_BASE}/ui/bootstrap`);
+    const res = await fetch(`${API_BASE}/ui/bootstrap`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+    });
     if (!res.ok) throw new Error("HTTP error " + res.status);
     const data = await res.json();
     handleSnapshot(data);
 }
 
 function cleanupLiveTransport() {
+    liveTransportSeq += 1;
     currentWatchedProjectId = null;
     if(wsReconnectTimer) {
         clearTimeout(wsReconnectTimer);
@@ -1760,11 +2387,13 @@ function cleanupLiveTransport() {
         try { liveFallbackSse.close(); } catch(_) {}
         liveFallbackSse = null;
     }
+    stopBootstrapPolling();
 }
 
 function updateRealtimeStatus(connected, label) {
     const connDiv = document.getElementById('connStatus');
     const connText = document.getElementById('connText');
+    if(!connDiv || !connText) return;
 
     if(connected) {
         connDiv.classList.add('connected');
@@ -1772,6 +2401,26 @@ function updateRealtimeStatus(connected, label) {
         connDiv.classList.remove('connected');
     }
     connText.textContent = label;
+}
+
+function stopBootstrapPolling() {
+    if(bootstrapPollTimer) {
+        clearInterval(bootstrapPollTimer);
+        bootstrapPollTimer = null;
+    }
+}
+
+function startBootstrapPolling() {
+    if(bootstrapPollTimer) return;
+    bootstrapPollTimer = setInterval(async () => {
+        try {
+            await refreshBootstrap();
+            updateRealtimeStatus(true, 'Fallback local');
+        } catch(err) {
+            console.error('Falha no fallback de sincronizacao do painel.', err);
+            updateRealtimeStatus(false, 'Conectando...');
+        }
+    }, 5000);
 }
 
 function sendRealtime(message) {
@@ -1794,6 +2443,7 @@ function notifyRealtimeProjectWatch() {
 
 function setupRealtime() {
     cleanupLiveTransport();
+    const transportSeq = liveTransportSeq;
     const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${wsProtocol}//${location.host}/ui/ws`;
 
@@ -1806,6 +2456,8 @@ function setupRealtime() {
     }
 
     liveSocket.onopen = () => {
+        if(transportSeq !== liveTransportSeq) return;
+        stopBootstrapPolling();
         updateRealtimeStatus(true, 'Tempo real');
         notifyRealtimeProjectWatch();
         sendRealtime({ type: 'snapshot.request' });
@@ -1816,6 +2468,7 @@ function setupRealtime() {
     };
 
     liveSocket.onmessage = (event) => {
+        if(transportSeq !== liveTransportSeq) return;
         try {
             const message = JSON.parse(event.data);
             if(message.type === 'snapshot' && message.data) {
@@ -1827,26 +2480,34 @@ function setupRealtime() {
     };
 
     liveSocket.onerror = () => {
+        if(transportSeq !== liveTransportSeq) return;
         updateRealtimeStatus(false, 'Reconectando...');
+        startBootstrapPolling();
     };
 
     liveSocket.onclose = () => {
+        if(transportSeq !== liveTransportSeq) return;
         updateRealtimeStatus(false, 'Fallback SSE');
+        startBootstrapPolling();
         setupSSEFallback();
     };
 }
 
 function setupSSEFallback() {
+    const transportSeq = liveTransportSeq;
     if(liveFallbackSse) {
         try { liveFallbackSse.close(); } catch(_) {}
     }
     liveFallbackSse = new EventSource(`${API_BASE}/ui/events`);
 
     liveFallbackSse.onopen = () => {
+        if(transportSeq !== liveTransportSeq) return;
+        stopBootstrapPolling();
         updateRealtimeStatus(true, 'Sincronizado');
     };
 
     liveFallbackSse.addEventListener('snapshot', (e) => {
+        if(transportSeq !== liveTransportSeq) return;
         try {
             const data = JSON.parse(e.data);
             handleSnapshot(data);
@@ -1856,6 +2517,8 @@ function setupSSEFallback() {
     });
 
     liveFallbackSse.onerror = () => {
+        if(transportSeq !== liveTransportSeq) return;
+        startBootstrapPolling();
         updateRealtimeStatus(false, 'Conectando...');
         if(!wsReconnectTimer) {
             wsReconnectTimer = setTimeout(() => {
@@ -1866,19 +2529,34 @@ function setupSSEFallback() {
     };
 }
 
+function runRenderStep(label, fn) {
+    try {
+        fn();
+    } catch(error) {
+        console.error(`Falha ao renderizar ${label}`, error);
+    }
+}
+
 function handleSnapshot(data) {
+    buildDashboardShell();
     if(data.projects) globalState.projects = data.projects.items || data.projects;
     if(data.activeProject) globalState.activeProject = data.activeProject;
     if(data.stats) globalState.stats = data.stats;
     if(data.activity) globalState.activity = data.activity;
 
-    renderSidebar();
-    renderActiveProject();
-    renderQueueStats(data.stats);
-    if(data.manualAssist) renderManualAssist(data.manualAssist);
-    renderAudit(data.audit);
-    repairVisibleText(document.body);
-    notifyRealtimeProjectWatch();
+    runRenderStep('sidebar', () => renderSidebar());
+    runRenderStep('activeProject', () => renderActiveProject());
+    runRenderStep('queueStats', () => renderQueueStats(data.stats));
+    if(data.manualAssist) {
+        runRenderStep('manualAssist', () => renderManualAssist(data.manualAssist));
+    }
+    runRenderStep('audit', () => renderAudit(data.audit));
+    Promise.resolve(hydrateProjectDetails(globalState.activeProject?.project?.id)).catch((error) => {
+        console.error('Falha ao hidratar detalhes do projeto', error);
+        projectDetailsLoadedFor = null;
+    });
+    runRenderStep('repairVisibleText', () => repairVisibleText(document.body));
+    runRenderStep('notifyRealtimeProjectWatch', () => notifyRealtimeProjectWatch());
 }
 
 function renderSidebar() {
@@ -2633,12 +3311,16 @@ function renderProjectRadar(snap) {
     const checklist = document.getElementById('radarChecklist');
     const stats = document.getElementById('radarStats');
     const badge = document.getElementById('radarStateBadge');
+    const mainRisk = document.getElementById('radarMainRisk');
+    const currentBlocker = document.getElementById('radarCurrentBlocker');
+    const nextDelivery = document.getElementById('radarNextDelivery');
 
-    if (!copy || !checklist || !stats || !badge || !snap?.project) {
+    if (!copy || !checklist || !stats || !badge || !mainRisk || !currentBlocker || !nextDelivery || !snap?.project) {
         return;
     }
 
     const tasks = Array.isArray(snap.tasks) ? snap.tasks.filter(item => item.status !== 'completed') : [];
+    const inProgressTasks = tasks.filter(item => item.status === 'in_progress');
     const milestones = Array.isArray(snap.milestones) ? snap.milestones.filter(item => item.status !== 'completed') : [];
     const logs = Array.isArray(snap.logs) ? snap.logs : [];
     const narratorMessages = Array.isArray(snap.narrator?.messages)
@@ -2650,8 +3332,41 @@ function renderProjectRadar(snap) {
     const queue = snap.dashboard?.queue || {};
     const agendaCounts = snap.dashboard?.agendaCounts || {};
     const recentWarnings = logs.filter(entry => entry.status === 'warning' || entry.status === 'error').length;
+    const failedCommands = Number(queue.failed || 0);
+    const latestWarning = logs.find(entry => entry.status === 'warning' || entry.status === 'error');
+    const topTask = tasks[0];
+    const topMilestone = milestones[0];
+
+    let riskText = 'Nenhum risco principal no radar. O projeto esta respirando sem drama imediato.';
+    if (failedCommands > 0) {
+        riskText = `${failedCommands} falha(s) ainda aparecem no historico operacional. Vale revisar antes que isso vire bagunca de novo.`;
+    } else if (recentWarnings > 0 && latestWarning?.summary) {
+        riskText = latestWarning.summary;
+    } else if (agendaCounts.today > 0 && topTask?.title) {
+        riskText = `Existe entrega para hoje puxando a prioridade: ${textOrFallback(topTask.title)}.`;
+    } else if (overallPct < 40) {
+        riskText = 'O projeto ainda esta em fase inicial e pode perder direcao se as proximas etapas nao ficarem claras.';
+    }
+
+    let blockerText = 'Nenhum bloqueio explicito no momento. O caminho esta relativamente livre.';
+    if (Number(queue.awaitingExternal || 0) > 0) {
+        blockerText = `Ainda ha ${queue.awaitingExternal} item(ns) aguardando validacao externa.`;
+    } else if (inProgressTasks[0]?.title) {
+        blockerText = `O fluxo atual esta concentrado em: ${textOrFallback(inProgressTasks[0].title)}.`;
+    } else if (latestWarning?.details || latestWarning?.summary) {
+        blockerText = textOrFallback(latestWarning.details || latestWarning.summary);
+    }
+
+    const recommendedDelivery = textOrFallback(
+        topTask?.title || topMilestone?.title || nextFocus,
+        'Sem proxima entrega recomendada no momento.'
+    );
 
     copy.textContent = `${summaryText} Próximo foco: ${nextFocus}`;
+
+    mainRisk.textContent = riskText;
+    currentBlocker.textContent = blockerText;
+    nextDelivery.textContent = recommendedDelivery;
 
     const checkpoints = [
         ...tasks.slice(0, 2).map(task => `Tarefa: ${textOrFallback(task.title, 'Sem título')}`),
@@ -2859,6 +3574,279 @@ function renderAudit(audit) {
     }
     
     content.innerHTML = html;
+}
+
+function renderProjectRadar(snap) {
+    const copy = document.getElementById('radarCopy');
+    const checklist = document.getElementById('radarChecklist');
+    const stats = document.getElementById('radarStats');
+    const badge = document.getElementById('radarStateBadge');
+    const badgeMirror = document.getElementById('radarStateBadgeMirror');
+    const mainRisk = document.getElementById('radarMainRisk');
+    const currentBlocker = document.getElementById('radarCurrentBlocker');
+    const nextDelivery = document.getElementById('radarNextDelivery');
+    const actions = document.getElementById('radarActions');
+    if (!copy || !checklist || !stats || !badge || !mainRisk || !currentBlocker || !nextDelivery || !actions || !snap?.project) return;
+
+    const radar = snap.radar || {};
+    const tasks = toArray(snap.tasks).filter(item => item.status !== 'completed');
+    const logs = toArray(snap.logs);
+    const queue = snap.dashboard?.queue || {};
+    const agendaCounts = snap.dashboard?.agendaCounts || {};
+    const overallPct = Number(snap.dashboard?.progress?.overallPct || 0);
+    const health = textOrFallback(snap.dashboard?.status?.health, 'steady');
+    const headline = textOrFallback(radar.headline, `Radar estrategico de ${snap.project.name}`);
+    const narratorLead = toArray(snap.narrator?.messages).map(item => typeof item === 'string' ? item : item?.text).filter(Boolean)[0];
+
+    copy.textContent = `${headline}. ${textOrFallback(narratorLead || snap.project.description, 'Sem leitura complementar do projeto no momento.')}`;
+    mainRisk.textContent = textOrFallback(radar.risk, 'Nenhum risco principal mapeado agora.');
+    currentBlocker.textContent = textOrFallback(radar.blocker, 'Nenhum bloqueio importante no momento.');
+    nextDelivery.textContent = textOrFallback(radar.nextDelivery, snap.dashboard?.status?.nextFocus || 'Sem proxima entrega recomendada.');
+
+    const checkpoints = toArray(radar.checkpoints);
+    checklist.innerHTML = checkpoints.length
+        ? checkpoints.map(item => `<div class="radar-list-item">${safeHtml(textOrFallback(item, 'Checkpoint'))}</div>`).join('')
+        : '<div class="radar-list-item">Nenhum checkpoint aberto agora. O projeto esta relativamente bem organizado.</div>';
+
+    const radarStats = [
+        { label: 'Progresso geral', value: `${overallPct}%` },
+        { label: 'Tarefas abertas', value: String(tasks.length) },
+        { label: 'Aguardando agente', value: String(queue.awaitingExternal || 0) },
+        { label: 'Alertas recentes', value: String(logs.filter(entry => entry.status === 'warning' || entry.status === 'error').length || agendaCounts.overdue || 0) }
+    ];
+
+    stats.innerHTML = radarStats.map(item => `
+        <div class="radar-stat">
+            <div class="radar-stat-label">${safeHtml(item.label)}</div>
+            <div class="radar-stat-value">${safeHtml(item.value)}</div>
+        </div>
+    `).join('');
+
+    const badgeClass = `badge ${health === 'attention' ? 'badge-health-risky' : 'badge-health-steady'}`;
+    badge.textContent = health.toUpperCase();
+    badge.className = badgeClass;
+    if (badgeMirror) {
+        badgeMirror.textContent = badge.textContent;
+        badgeMirror.className = badge.className;
+    }
+
+    const radarActions = toArray(radar.actions);
+    actions.innerHTML = radarActions.length
+        ? radarActions.map(action => `
+            <button class="${action.variant === 'primary' ? 'btn-primary' : 'btn-secondary'}" type="button" onclick="triggerRadarAction('${String(action.id).replace(/'/g, '&#39;')}')">
+                ${safeHtml(textOrFallback(action.label, 'Executar acao'))}
+            </button>
+        `).join('')
+        : '<div class="empty-state">Sem acoes recomendadas pelo radar agora.</div>';
+}
+
+function renderTaskBoardPanel(snap) {
+    const list = document.getElementById('taskBoardList');
+    if (!list) return;
+
+    const lanes = toArray(snap.taskBoard?.lanes);
+    if (!lanes.length) {
+        list.innerHTML = '<div class="empty-state">Sem lanes operacionais carregadas ainda.</div>';
+        return;
+    }
+
+    list.innerHTML = lanes.map(lane => `
+        <div class="glass-panel" style="padding:1rem; border-color:rgba(255,255,255,0.08);">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+                <div class="radar-card-title">${safeHtml(textOrFallback(lane.label, 'Lane'))}</div>
+                <span class="badge" style="background:rgba(255,255,255,0.06); border:1px solid var(--border); color:var(--text);">${safeHtml(String(lane.count || 0))}</span>
+            </div>
+            <div class="action-stack">
+                ${toArray(lane.items).slice(0, 4).map(item => `
+                    <div style="padding:0.8rem; border-radius:10px; border:1px solid rgba(255,255,255,0.07); background:rgba(0,0,0,0.2);">
+                        <div style="display:flex; justify-content:space-between; gap:0.75rem; align-items:flex-start;">
+                            <div style="font-size:0.9rem; color:var(--text); line-height:1.45; font-weight:600;">${safeHtml(textOrFallback(item.title, 'Tarefa sem titulo'))}</div>
+                            <span class="badge" style="background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text-muted);">${safeHtml(textOrFallback(item.priority, 'medium').toUpperCase())}</span>
+                        </div>
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.45rem;">
+                            <span class="badge" style="background:rgba(6,182,212,0.08); border:1px solid rgba(6,182,212,0.25); color:var(--secondary);">${safeHtml(textOrFallback(item.status, 'pending').toUpperCase())}</span>
+                            ${item.linkedCommandStatus ? `<span class="${formatStatusBadgeClass(item.linkedCommandStatus)}">${safeHtml(formatCommandStatusText(item.linkedCommandStatus))}</span>` : ''}
+                        </div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.45rem; line-height:1.45;">
+                            ${item.linkedResultSummary ? safeHtml(item.linkedResultSummary) : (item.dueDate ? `Prazo: ${safeHtml(new Date(item.dueDate).toLocaleDateString())}` : 'Sem resultado vinculado ainda.')}
+                        </div>
+                        <div class="task-actions">
+                            <button class="btn-secondary" type="button" onclick="dispatchAgendaTask('${String(item.taskId).replace(/'/g, '&#39;')}', this)">Enviar para o agente</button>
+                            ${item.linkedCommandId ? `<button class="btn-secondary" type="button" onclick="openCommandDrawer('${String(item.linkedCommandId).replace(/'/g, '&#39;')}')">Ver job</button>` : ''}
+                        </div>
+                    </div>
+                `).join('') || '<div class="empty-state">Nenhum item nesta lane.</div>'}
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderGitPanel(snap) {
+    const branch = document.getElementById('gitBranch');
+    const summary = document.getElementById('gitSummary');
+    const changedFiles = document.getElementById('gitChangedFiles');
+    const recentCommits = document.getElementById('gitRecentCommits');
+    const status = document.getElementById('gitStatus');
+    const changesList = document.getElementById('gitChangesList');
+    const commitsList = document.getElementById('gitCommitsList');
+    if (!branch || !summary || !changedFiles || !recentCommits || !status || !changesList || !commitsList) return;
+
+    const git = snap.git || {};
+    branch.textContent = git.branch ? `Branch: ${git.branch}` : 'Branch: --';
+    summary.textContent = textOrFallback(git.summary, 'Sem leitura de Git disponivel no momento.');
+    changedFiles.textContent = String(toArray(git.changedFiles).length);
+    recentCommits.textContent = String(toArray(git.recentCommits).length);
+    status.textContent = git.available ? (git.clean ? 'LIMPO' : 'LOCAL') : 'OFF';
+
+    changesList.innerHTML = toArray(git.changedFiles).slice(0, 5).map(item => `
+        <div style="padding:0.7rem 0.8rem; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:rgba(0,0,0,0.16);">
+            <div style="display:flex; justify-content:space-between; gap:0.75rem; align-items:center;">
+                <div style="font-family:var(--font-mono); font-size:0.8rem; color:var(--text); word-break:break-word;">${safeHtml(textOrFallback(item.path, 'arquivo'))}</div>
+                <span class="badge" style="background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text-muted);">${safeHtml(textOrFallback(item.status, 'modified').toUpperCase())}</span>
+            </div>
+        </div>
+    `).join('') || '<div class="empty-state">Nenhuma mudanca local detectada.</div>';
+
+    commitsList.innerHTML = toArray(git.recentCommits).slice(0, 4).map(item => `
+        <div style="padding:0.7rem 0.8rem; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:rgba(0,0,0,0.16);">
+            <div style="font-size:0.88rem; color:var(--text); line-height:1.45;">${safeHtml(textOrFallback(item.summary, '(sem resumo)'))}</div>
+            <div style="font-size:0.76rem; color:var(--text-muted); margin-top:0.35rem; font-family:var(--font-mono);">${safeHtml(textOrFallback(item.author, 'autor'))} • ${safeHtml(textOrFallback(item.hash, '').slice(0, 7))}</div>
+        </div>
+    `).join('') || '<div class="empty-state">Nenhum commit recente listado.</div>';
+}
+
+function renderValidationPanel(snap) {
+    const state = document.getElementById('validationState');
+    const checks = document.getElementById('validationChecks');
+    if (!state || !checks) return;
+
+    const validation = snap.validation || {};
+    state.textContent = textOrFallback(validation.summary, 'Estado de validacao pendente.');
+    checks.innerHTML = toArray(validation.steps).map(step => `
+        <div style="padding:0.8rem; border-radius:10px; border:1px solid rgba(255,255,255,0.07); background:rgba(0,0,0,0.2);">
+            <div style="display:flex; justify-content:space-between; gap:0.75rem; align-items:flex-start;">
+                <div style="font-size:0.9rem; color:var(--text); font-weight:600;">${safeHtml(textOrFallback(step.label, 'Passo'))}</div>
+                <span class="${formatStatusBadgeClass(step.status === 'passed' ? 'completed' : step.status === 'failed' ? 'failed' : step.status === 'pending' ? 'processing' : 'awaiting_external')}">${safeHtml(textOrFallback(step.status, 'skipped').toUpperCase())}</span>
+            </div>
+            <div style="font-size:0.8rem; color:var(--text-muted); line-height:1.45; margin-top:0.45rem;">${safeHtml(textOrFallback(step.summary, 'Sem resumo do passo.'))}</div>
+        </div>
+    `).join('') || '<div class="empty-state">Sem verificacoes ainda.</div>';
+}
+
+function renderDigestPanel(snap) {
+    const summary = document.getElementById('digestSummary');
+    const list = document.getElementById('digestTodayList');
+    if (!summary || !list) return;
+
+    const digest = snap.digest || {};
+    summary.textContent = textOrFallback(digest.summary, 'Nenhum digest carregado ainda.');
+    const items = [
+        ...toArray(digest.wins).map(item => ({ kind: 'win', text: item })),
+        ...toArray(digest.risks).map(item => ({ kind: 'risk', text: item })),
+        ...toArray(digest.nextSteps).map(item => ({ kind: 'next', text: item }))
+    ];
+
+    list.innerHTML = items.length ? items.slice(0, 6).map(item => `
+        <div style="padding:0.7rem 0.8rem; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:rgba(0,0,0,0.16);">
+            <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.25rem;">${safeHtml(item.kind)}</div>
+            <div style="font-size:0.84rem; color:var(--text); line-height:1.45;">${safeHtml(textOrFallback(item.text, 'Sem detalhe.'))}</div>
+        </div>
+    `).join('') : '<div class="empty-state">Sem itens no digest.</div>';
+}
+
+function renderTimelinePanel(snap) {
+    const timeline = document.getElementById('projectTimeline');
+    if (!timeline) return;
+
+    const items = normalizeTimelineEntries(snap.timeline?.items || snap.timeline);
+    timeline.innerHTML = items.length ? items.slice(0, 14).map(item => `
+        <div class="timeline-item">
+            <div class="time">${safeHtml(item.timestamp ? new Date(item.timestamp).toLocaleString() : '--')}</div>
+            <div class="msg"><strong style="color:var(--text);">${safeHtml(item.__title)}</strong><br>${safeHtml(item.__details)}</div>
+        </div>
+    `).join('') : '<div class="empty-state">Sem eventos suficientes na timeline ainda.</div>';
+}
+
+function renderActiveProject() {
+    const snap = globalState.activeProject;
+    if(!snap || !snap.project) return;
+
+    document.getElementById('activeProjectName').textContent = snap.project.name;
+    const badges = [];
+    if(snap.project.state) badges.push(`<div class="badge badge-state-${snap.project.state}">${safeHtml(String(snap.project.state).toUpperCase())}</div>`);
+    if(snap.dashboard?.status?.health) badges.push(`<div class="badge badge-health-${snap.dashboard.status.health}">${safeHtml(String(snap.dashboard.status.health).toUpperCase())}</div>`);
+    if(snap.profile?.label) badges.push(`<div class="badge" style="background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text-muted);">${safeHtml(snap.profile.label)}</div>`);
+    document.getElementById('activeProjectBadges').innerHTML = badges.join('');
+
+    const wsInfo = document.getElementById('workspaceInfo');
+    const btnRescan = document.getElementById('btnRescan');
+    const btnLinkProjectRoot = document.getElementById('btnLinkProjectRoot');
+    const settings = snap.settings || {};
+    if(settings.projectRoot) {
+        wsInfo.style.display = 'flex';
+        document.getElementById('wsPath').textContent = `Pasta: ${textOrFallback(settings.projectRoot)}`;
+        document.getElementById('wsStack').textContent = textOrFallback(settings.stackHint, snap.profile?.label || 'Stack generica');
+        document.getElementById('wsIndexed').textContent = settings.lastIndexedAt ? `Indexado: ${new Date(settings.lastIndexedAt).toLocaleTimeString()}` : 'Indexando...';
+        btnRescan.style.display = 'inline-block';
+        btnLinkProjectRoot.style.display = 'none';
+    } else {
+        wsInfo.style.display = 'none';
+        btnRescan.style.display = 'none';
+        btnLinkProjectRoot.style.display = 'inline-block';
+    }
+
+    const prog = snap.dashboard?.progress || {};
+    document.getElementById('mOverall').textContent = `${prog.overallPct || 0}%`;
+    document.getElementById('mOverallBar').style.width = `${prog.overallPct || 0}%`;
+    document.getElementById('mTasks').textContent = `${prog.tasksPct || 0}%`;
+    document.getElementById('mTasksBar').style.width = `${prog.tasksPct || 0}%`;
+    document.getElementById('mMilestones').textContent = `${prog.milestonesPct || 0}%`;
+    document.getElementById('mMilestonesBar').style.width = `${prog.milestonesPct || 0}%`;
+    document.getElementById('mCommands').textContent = `${prog.commandsPct || 0}%`;
+    document.getElementById('mCommandsBar').style.width = `${prog.commandsPct || 0}%`;
+
+    const agendaOperational = snap.agendaOperational || {};
+    const immediateTask = toArray(agendaOperational.immediate)[0];
+    const milestone = toArray(snap.milestones).find(item => item.status !== 'completed');
+    document.getElementById('directionHeadline').textContent = textOrFallback(immediateTask?.title || snap.radar?.nextDelivery || snap.dashboard?.status?.nextFocus, 'Sem rumo definido ainda.');
+    document.getElementById('directionSubline').textContent = textOrFallback(snap.profile?.description || milestone?.description || snap.project.description, 'O painel vai destacar a proxima entrega que move o projeto.');
+    document.getElementById('directionStateBadge').textContent = String(snap.project.state || 'active').toUpperCase();
+    document.getElementById('directionStateBadge').className = `badge badge-state-${snap.project.state || 'active'}`;
+    document.getElementById('directionHealthBadge').textContent = String(snap.dashboard?.status?.health || 'steady').toUpperCase();
+    document.getElementById('directionHealthBadge').className = `badge badge-health-${snap.dashboard?.status?.health || 'steady'}`;
+    document.getElementById('focusAlert').innerHTML = `<strong>Foco Atual:</strong> ${safeHtml(textOrFallback(snap.radar?.nextDelivery || snap.dashboard?.status?.nextFocus, 'Nenhum foco definido'))}`;
+    document.getElementById('agendaGoal').textContent = textOrFallback(snap.radar?.blocker || milestone?.description || snap.project.description, 'O Nexus ainda vai traduzir milestones e tarefas em um destino pratico.');
+    const agendaC = snap.dashboard?.agendaCounts || {};
+    document.getElementById('agOverdue').textContent = agendaC.overdue || 0;
+    document.getElementById('agToday').textContent = agendaC.today || 0;
+    document.getElementById('agUpcoming').textContent = agendaC.upcoming || 0;
+    document.getElementById('agendaPriorityList').innerHTML = toArray(agendaOperational.immediate).slice(0, 4).map(task => {
+        const dueLabel = task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sem prazo';
+        return `
+            <div style="padding:0.85rem 0.95rem; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03);">
+                <div style="display:flex; justify-content:space-between; gap:0.75rem; align-items:flex-start;">
+                    <div style="font-size:0.9rem; color:var(--text); line-height:1.45;">${safeHtml(textOrFallback(task.title, 'Tarefa sem titulo'))}</div>
+                    <span class="badge" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:var(--text-muted);">${safeHtml(textOrFallback(task.priority, 'medium').toUpperCase())}</span>
+                </div>
+                <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.45rem;">Prazo: ${dueLabel}</div>
+                ${task.description ? `<div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.45rem; line-height:1.45;">${safeHtml(task.description)}</div>` : ''}
+                <div style="display:flex; justify-content:flex-end; margin-top:0.75rem;">
+                    <button class="btn-secondary" style="padding:0.45rem 0.75rem; font-size:0.78rem; border-color:rgba(6, 182, 212, 0.35); color:var(--secondary);" onclick="dispatchAgendaTask('${String(task.id).replace(/'/g, '&#39;')}', this)">Enviar para o agente</button>
+                </div>
+            </div>
+        `;
+    }).join('') || '<div class="empty-state">Nenhuma tarefa priorizada ainda.</div>';
+
+    renderTaskBoardPanel(snap);
+    renderGitPanel(snap);
+    renderValidationPanel(snap);
+    renderProjectRadar(snap);
+    renderDigestPanel(snap);
+    renderProjectSummary(snap);
+    renderTimelinePanel(snap);
+    renderFilesPanel(snap);
+    renderFilesRail(snap);
+    renderCommandsList(snap.commands || []);
 }
 
 function closeDrawer() {

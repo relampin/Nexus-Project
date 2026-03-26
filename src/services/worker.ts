@@ -7,6 +7,7 @@ import { buildAntigravityCorrectionPrompt } from "./antigravityPrompt";
 import { AntigravitySessionMonitor } from "./antigravitySessionMonitor";
 import { InformalLogger } from "./logger";
 import { Orchestrator } from "./orchestrator";
+import { ProjectValidationService } from "./projectValidation";
 
 export class WorkerService {
   private isRunning = false;
@@ -17,6 +18,7 @@ export class WorkerService {
     private readonly logger: InformalLogger,
     private readonly projects: NexusProjectsService,
     private readonly antigravityMonitor: AntigravitySessionMonitor,
+    private readonly validation: ProjectValidationService,
   ) {}
 
   async processPending() {
@@ -136,6 +138,7 @@ export class WorkerService {
                 summary: this.buildAntigravitySummary(raw, command.id),
                 details: responseFile,
               });
+              this.triggerValidation(completed.meta?.projectId, "external-complete");
               collected += 1;
             }
           } catch (error) {
@@ -182,6 +185,7 @@ export class WorkerService {
             summary: `Resposta externa recebida de ${external.provider}.`,
             details: responseFile,
           });
+          this.triggerValidation(completed.meta?.projectId, "external-complete");
           collected += 1;
         }
       } catch (error) {
@@ -283,6 +287,7 @@ export class WorkerService {
             status: "success",
             summary: dispatch.result.message,
           });
+          this.triggerValidation(completed.meta?.projectId, "command-complete");
         }
         return;
       }
@@ -344,5 +349,16 @@ export class WorkerService {
     } catch {
       // Mantemos o fluxo do worker mesmo se o projeto tiver sido removido.
     }
+  }
+
+  private triggerValidation(projectId: string | undefined, triggeredBy: string) {
+    if (!projectId) {
+      return;
+    }
+
+    const root = this.projects.getProjectRoot(projectId);
+    void this.validation.run(projectId, root, triggeredBy).catch(() => {
+      // Validacao automatica nao pode derrubar o fluxo principal dos jobs.
+    });
   }
 }

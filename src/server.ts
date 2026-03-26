@@ -43,18 +43,31 @@ export function createApp() {
   });
 
   app.use(express.json());
+  app.use("/app", (_req, res, next) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    next();
+  });
 
   app.get("/health", (_req, res) => {
     const activeProject = runtime.projects.getActiveProject();
     const audit = runtime.getAuditReport();
     const visibleQueue = runtime.getUiSnapshot().stats;
+    const activeProjectId = activeProject?.project.id;
+    const validation = activeProjectId ? runtime.getProjectValidation(activeProjectId) : null;
+    const git = activeProjectId ? runtime.getProjectGit(activeProjectId) : null;
+    const profile = activeProjectId ? runtime.getProjectSnapshot(activeProjectId)?.profile ?? null : null;
 
     res.json({
       status: "ok",
       service: "nexus-portatil",
       queue: visibleQueue,
       activeProject: activeProject?.project ?? null,
+      activeProjectProfile: profile,
       activeProjectRoot: activeProject ? runtime.projects.getProjectRoot(activeProject.project.id) : getTargetProjectRoot(),
+      validation,
+      git,
       antigravitySession: runtime.antigravityMonitor.getHealthSummary(),
       audit: runtime.audit.getLatestSummary() ?? {
         status: audit.status,
@@ -93,6 +106,9 @@ export function createApp() {
   app.get("/app", (_req, res) => {
     const indexPath = join(nexusFrontendDirectory, "index.html");
     if (existsSync(indexPath)) {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
       res.sendFile(indexPath);
     } else {
       res.json({
@@ -107,6 +123,9 @@ export function createApp() {
   app.get("/app/", (_req, res) => {
     const indexPath = join(nexusFrontendDirectory, "index.html");
     if (existsSync(indexPath)) {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
       res.sendFile(indexPath);
       return;
     }

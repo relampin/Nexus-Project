@@ -39,7 +39,7 @@ export class AntigravityAdapter implements AgentAdapter {
       reviewFile: monitor?.reviewFile,
       requestText: String(command.payload.text ?? ""),
       dispatchedAt: new Date().toISOString(),
-      message: "Job entregue para o Antigravity via Telegram.",
+      message: "Handoff preparado para o Antigravity. A entrega depende de um canal ativo via Telegram ou CDP.",
       monitor,
     };
   }

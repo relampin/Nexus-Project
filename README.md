@@ -1,14 +1,15 @@
 # Nexus Portatil
 
-Painel e bridge local para orquestrar `Codex` e `Antigravity` em qualquer projeto, com dashboard web, fila persistente, agenda, logs por IA e monitoramento da sessao do Antigravity.
+Painel e bridge local para orquestrar `Codex` e `Antigravity` em qualquer projeto, com dashboard web multi-projetos, fila persistente, agenda operacional, logs por IA, resumo inteligente, TTS e monitoramento da sessao visivel do Antigravity.
 
 ## O que ele faz
 
-- recebe comandos por API
-- guarda fila persistente
+- recebe comandos por API e pelo painel
+- guarda fila persistente por projeto
 - despacha jobs para `codex` e `antigravity`
-- acorda o Antigravity via CDP
-- fecha jobs por log/resultado
+- injeta handoffs no Antigravity via CDP
+- fecha jobs por log, review e validacao automatica
+- mostra timeline, Git, agenda, workspace, auditoria e resumo diario
 - opcionalmente usa Telegram como transporte
 
 ## O que e obrigatorio
@@ -21,6 +22,7 @@ Painel e bridge local para orquestrar `Codex` e `Antigravity` em qualquer projet
 
 - Telegram
 - OpenClaw
+- ElevenLabs
 
 ## Como usar
 
@@ -34,10 +36,12 @@ Painel e bridge local para orquestrar `Codex` e `Antigravity` em qualquer projet
 7. Rode o Nexus:
    - `npm run build`
    - `npm start`
+8. Abra:
+   - `http://localhost:3000/app`
 
-## Estrutura que entra no repositório
+## Estrutura que entra no repositorio
 
-O repositório precisa apenas do codigo-fonte e dos arquivos de bootstrap:
+O repositorio precisa apenas do codigo-fonte e dos arquivos de bootstrap:
 
 - `src/`
 - `frontend/`
@@ -65,23 +69,31 @@ Na pratica:
 - se voce colocar o `Nexus-portatil` dentro de um projeto, ele tende a funcionar sem configuracao extra
 - se voce deixar o Nexus isolado fora do projeto, vale preencher `TARGET_PROJECT_ROOT`
 
-## Endpoints
+## Endpoints principais
 
 - `GET /health`
 - `GET /ui/bootstrap`
-- `GET /ui/antigravity/session`
 - `GET /ui/events`
 - `GET /projects`
+- `GET /projects/profiles`
 - `GET /projects/active`
-- `GET /projects/:projectId`
+- `PUT /projects/active`
+- `POST /projects`
+- `PATCH /projects/:projectId`
+- `DELETE /projects/:projectId`
+- `POST /projects/:projectId/rescan`
 - `GET /projects/:projectId/tasks`
 - `POST /projects/:projectId/tasks/:taskId/send-to-agent`
-- `GET /store-api/health`
-- `GET /store-api/categories`
-- `GET /store-api/products`
-- `GET /store-api/products/:id`
-- `POST /store-api/orders`
-- `GET /store-api/orders/:id`
+- `GET /projects/:projectId/radar`
+- `POST /projects/:projectId/radar/actions/:actionId`
+- `GET /projects/:projectId/timeline`
+- `GET /projects/:projectId/git`
+- `GET /projects/:projectId/validation`
+- `POST /projects/:projectId/validation/run`
+- `GET /projects/:projectId/digest/daily`
+- `GET /projects/:projectId/search?q=texto`
+- `GET /projects/:projectId/summary`
+- `POST /projects/:projectId/summary/audio`
 - `GET /commands`
 - `GET /commands/:id`
 - `POST /commands`
@@ -89,8 +101,6 @@ Na pratica:
 - `POST /diagnostics/audit/run`
 - `POST /worker/process`
 - `POST /telegram/relay`
-- `GET /app`
-- `GET /project-app`
 
 ## Realtime
 
@@ -102,7 +112,7 @@ Na pratica:
 ## Estrutura interna
 
 - `data/`
-  fila, auditoria, audio e estado do Nexus
+  fila, auditoria, audio, validacoes e estado do Nexus
 - `logs/`
   logs do orquestrador
 - `frontend/`
@@ -121,15 +131,27 @@ Na pratica:
 - `http://localhost:3000/store-app`
   frontend da loja de racao, se existir em `TARGET_PROJECT_ROOT/frontend/store`
 
-## Observacao
+## Recursos novos do painel
 
-Se voce quer apenas o fluxo local Codex -> Nexus -> Antigravity, `Telegram` nao e necessario.
-Ele so entra quando voce quiser transporte remoto ou notificacoes.
+- multi-projetos com projeto ativo global
+- perfis de projeto
+- agenda operacional e task board
+- radar do projeto com acoes acionaveis
+- timeline real por projeto
+- integracao com Git
+- validacao automatica
+- resumo diario do projeto
+- busca global no contexto do projeto
+- resumo inteligente com narrador e TTS
 
 ## Narrador e TTS
 
-O resumo por projeto agora sai com texto, mensagens de narrador e bloco de audio.
+O resumo por projeto sai com texto, mensagens de narrador e bloco de audio.
 
 - `TTS_PROVIDER=internal` usa o narrador local do Windows
 - `TTS_PROVIDER=elevenlabs` tenta usar ElevenLabs quando `ELEVENLABS_API_KEY` e `ELEVENLABS_VOICE_ID` estiverem configurados
 - se ElevenLabs nao estiver pronto, o Nexus cai para o provider interno sem exigir mudanca no frontend
+
+## Observacao
+
+Se voce quer apenas o fluxo local Codex -> Nexus -> Antigravity, `Telegram` nao e necessario. Ele so entra quando voce quiser transporte remoto ou notificacoes.

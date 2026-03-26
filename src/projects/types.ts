@@ -8,6 +8,7 @@ export type ProjectSummaryAudioProvider = "internal" | "elevenlabs";
 export type ProjectSummaryAudioStatus = "idle" | "generating" | "ready" | "playing" | "paused" | "failed";
 export type ProjectPersonalityMode = "neutral" | "sarcastic";
 export type ProjectPersonalityIntensity = "low" | "medium" | "high";
+export type ProjectProfileId = "general" | "web_app" | "backend_service" | "automation" | "site" | "ai_hub";
 
 export interface NexusProject {
   id: string;
@@ -23,6 +24,7 @@ export interface NexusProjectSettings {
   icon?: string;
   personalityMode?: ProjectPersonalityMode;
   personalityIntensity?: ProjectPersonalityIntensity;
+  profileId?: ProjectProfileId;
   stackHint?: string;
   lastIndexedAt?: string;
 }
@@ -30,6 +32,13 @@ export interface NexusProjectSettings {
 export interface ProjectPersonalityConfig {
   mode: ProjectPersonalityMode;
   intensity: ProjectPersonalityIntensity;
+}
+
+export interface ProjectProfileDefinition {
+  id: ProjectProfileId;
+  label: string;
+  description: string;
+  focusAreas: string[];
 }
 
 export interface NexusTask {
@@ -98,6 +107,15 @@ export interface ProjectAgendaSnapshot {
   upcoming: NexusTask[];
   withoutDueDate: NexusTask[];
   completed: NexusTask[];
+}
+
+export interface ProjectAgendaOperationalSnapshot {
+  immediate: NexusTask[];
+  thisWeek: NexusTask[];
+  atRisk: NexusTask[];
+  blocked: NexusTask[];
+  nextUp: NexusTask[];
+  recentlyCompleted: NexusTask[];
 }
 
 export interface ProjectQueueStats {
@@ -212,6 +230,132 @@ export interface ProjectSummarySnapshot {
   narrator: ProjectNarratorData;
 }
 
+export interface ProjectRadarAction {
+  id: string;
+  label: string;
+  description: string;
+  target: "codex" | "antigravity";
+  variant: "primary" | "secondary" | "warning";
+  commandText: string;
+}
+
+export interface ProjectRadarSnapshot {
+  headline: string;
+  risk: string;
+  blocker: string;
+  nextDelivery: string;
+  checkpoints: string[];
+  actions: ProjectRadarAction[];
+}
+
+export interface ProjectTaskExecutionSnapshot {
+  taskId: string;
+  title: string;
+  priority: NexusTaskPriority;
+  status: NexusTaskState;
+  dueDate?: string;
+  linkedCommandId?: string;
+  linkedCommandStatus?: string;
+  linkedCommandTarget?: string;
+  linkedCommandUpdatedAt?: string;
+  linkedResultSummary?: string;
+}
+
+export interface ProjectTaskBoardLane {
+  id: string;
+  label: string;
+  count: number;
+  items: ProjectTaskExecutionSnapshot[];
+}
+
+export interface ProjectTaskBoardSnapshot {
+  lanes: ProjectTaskBoardLane[];
+}
+
+export interface ProjectTimelineEvent {
+  id: string;
+  timestamp: string;
+  kind: "task" | "milestone" | "log" | "command" | "validation" | "git";
+  title: string;
+  detail: string;
+  status: "info" | "success" | "warning" | "error";
+  agent?: NexusLogAgent;
+  taskId?: string;
+  milestoneId?: string;
+  commandId?: string;
+}
+
+export interface ProjectGitFileChange {
+  path: string;
+  status: "modified" | "added" | "deleted" | "renamed" | "untracked";
+  staged: boolean;
+}
+
+export interface ProjectGitCommitSnapshot {
+  hash: string;
+  summary: string;
+  author: string;
+  timestamp: string;
+}
+
+export interface ProjectGitSnapshot {
+  available: boolean;
+  root?: string;
+  branch?: string;
+  clean: boolean;
+  ahead: number;
+  behind: number;
+  summary: string;
+  changedFiles: ProjectGitFileChange[];
+  recentCommits: ProjectGitCommitSnapshot[];
+  error?: string;
+}
+
+export interface ProjectValidationStep {
+  id: string;
+  label: string;
+  status: "pending" | "passed" | "failed" | "skipped";
+  summary: string;
+  command?: string;
+  output?: string;
+}
+
+export interface ProjectValidationSnapshot {
+  status: "idle" | "passed" | "failed" | "warning";
+  lastRunAt?: string;
+  summary: string;
+  steps: ProjectValidationStep[];
+  triggeredBy?: string;
+}
+
+export interface ProjectDigestSnapshot {
+  generatedAt: string;
+  title: string;
+  summary: string;
+  wins: string[];
+  risks: string[];
+  nextSteps: string[];
+}
+
+export interface ProjectSearchResult {
+  id: string;
+  type: "task" | "milestone" | "log" | "command" | "file" | "summary";
+  title: string;
+  subtitle: string;
+  snippet: string;
+  timestamp?: string;
+  path?: string;
+  status?: string;
+  taskId?: string;
+  commandId?: string;
+}
+
+export interface ProjectSearchSnapshot {
+  query: string;
+  total: number;
+  items: ProjectSearchResult[];
+}
+
 export interface ProjectGamificationSnapshot {
   level: number;
   experiencePoints: number;
@@ -252,6 +396,7 @@ export interface ProjectOverviewItem {
   project: NexusProject;
   settings: NexusProjectSettings;
   personality: ProjectPersonalityConfig;
+  profile: ProjectProfileDefinition;
   isActive: boolean;
   dashboard: ProjectDashboardSnapshot;
 }
@@ -265,10 +410,18 @@ export interface ProjectWorkspaceSnapshot {
   project: NexusProject;
   settings: NexusProjectSettings;
   personality: ProjectPersonalityConfig;
+  profile: ProjectProfileDefinition;
   dashboard: ProjectDashboardSnapshot;
   tasks: NexusTask[];
   milestones: NexusMilestone[];
   agenda: ProjectAgendaSnapshot;
+  agendaOperational: ProjectAgendaOperationalSnapshot;
+  radar: ProjectRadarSnapshot;
+  taskBoard: ProjectTaskBoardSnapshot;
+  timeline: ProjectTimelineEvent[];
+  git: ProjectGitSnapshot;
+  validation: ProjectValidationSnapshot;
+  digest: ProjectDigestSnapshot;
   logs: NexusProjectLog[];
   commands: unknown[];
   report: ProjectLogSummary;

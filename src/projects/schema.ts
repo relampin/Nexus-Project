@@ -8,6 +8,7 @@ const summaryAudioPlaybackStatusSchema = z.enum(["idle", "generating", "ready", 
   .transform((status) => (status === "stopped" ? "ready" : status));
 const personalityModeSchema = z.enum(["neutral", "sarcastic"]);
 const personalityIntensitySchema = z.enum(["low", "medium", "high"]);
+const projectProfileSchema = z.enum(["general", "web_app", "backend_service", "automation", "site", "ai_hub"]);
 const nullableString = z.string().trim().min(1).optional();
 const projectSettingsSchema = z.object({
   projectRoot: nullableString,
@@ -15,6 +16,7 @@ const projectSettingsSchema = z.object({
   icon: nullableString,
   personalityMode: personalityModeSchema.optional(),
   personalityIntensity: personalityIntensitySchema.optional(),
+  profileId: projectProfileSchema.optional(),
   stackHint: nullableString,
   lastIndexedAt: nullableString,
 });

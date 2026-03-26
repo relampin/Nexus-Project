@@ -1,15 +1,24 @@
 import { PersistentQueue } from "../core/queue";
-import { CommandRequest } from "../core/types";
+import { CommandRecord, CommandRequest } from "../core/types";
 import { NexusProjectsService } from "../projects/service";
 import {
   NexusProjectLog,
+  ProjectAgendaOperationalSnapshot,
+  ProjectDigestSnapshot,
+  ProjectGitSnapshot,
   ProjectPersonalityConfig,
   ProjectDashboardSnapshot,
   ProjectLogSummary,
   ProjectOverviewItem,
   ProjectQueueStats,
+  ProjectProfileDefinition,
+  ProjectRadarSnapshot,
+  ProjectSearchSnapshot,
   ProjectSummaryAudioStatus,
   ProjectSummarySnapshot,
+  ProjectTaskBoardSnapshot,
+  ProjectTimelineEvent,
+  ProjectValidationSnapshot,
   ProjectWorkspaceSnapshot,
 } from "../projects/types";
 import { isInvalidatedCommand, isInvalidatedProjectLog } from "./auditHeuristics";
@@ -17,7 +26,12 @@ import { AntigravitySessionMonitor } from "./antigravitySessionMonitor";
 import { InformalLogger } from "./logger";
 import { Orchestrator } from "./orchestrator";
 import { ProjectFilesService } from "./projectFiles";
+import { ProjectGitService } from "./projectGit";
+import { ProjectIntelligenceService } from "./projectIntelligence";
+import { resolveProjectProfile } from "./projectProfiles";
+import { ProjectSearchService } from "./projectSearch";
 import { ProjectSummaryService } from "./projectSummary";
+import { ProjectValidationService } from "./projectValidation";
 import { NexusAuditService } from "./systemAudit";
 import { WorkerService } from "./worker";
 
@@ -27,10 +41,21 @@ export class IntegrationRuntime {
   readonly orchestrator = new Orchestrator();
   readonly projects = new NexusProjectsService();
   readonly projectFiles = new ProjectFilesService(this.projects);
+  readonly projectGit = new ProjectGitService();
+  readonly projectValidation = new ProjectValidationService();
+  readonly intelligence = new ProjectIntelligenceService();
+  readonly search = new ProjectSearchService();
   readonly antigravityMonitor = new AntigravitySessionMonitor(this.logger, this.projects);
   readonly summaries = new ProjectSummaryService();
   readonly audit = new NexusAuditService(this.queue, this.projects);
-  readonly worker = new WorkerService(this.queue, this.orchestrator, this.logger, this.projects, this.antigravityMonitor);
+  readonly worker = new WorkerService(
+    this.queue,
+    this.orchestrator,
+    this.logger,
+    this.projects,
+    this.antigravityMonitor,
+    this.projectValidation,
+  );
 
   private interval?: NodeJS.Timeout;
 
@@ -96,6 +121,13 @@ export class IntegrationRuntime {
   markTelegramRelaySent(id: string, targetChatId: number) {
     const updated = this.queue.update(id, (command) => ({
       ...command,
+      external: command.external
+        ? {
+            ...command.external,
+            channel: "telegram",
+            message: `Job enviado ao Antigravity via Telegram (chat ${targetChatId}).`,
+          }
+        : command.external,
       meta: {
         ...command.meta,
         telegram: {
@@ -120,6 +152,12 @@ export class IntegrationRuntime {
   markTelegramPromptInjected(id: string) {
     const updated = this.queue.update(id, (command) => ({
       ...command,
+      external: command.external
+        ? {
+            ...command.external,
+            message: "Prompt injetado no Antigravity via CDP.",
+          }
+        : command.external,
       meta: {
         ...command.meta,
         telegram: {
@@ -298,6 +336,7 @@ export class IntegrationRuntime {
       project: workspace.project,
       settings: workspace.settings,
       personality: this.resolveProjectPersonality(workspace.settings),
+      profile: this.resolveProjectProfile(workspace.project.id),
       isActive: workspace.project.id === activeProjectId,
       dashboard: this.buildProjectDashboard(workspace.project.id),
     }));
@@ -320,18 +359,56 @@ export class IntegrationRuntime {
       return undefined;
     }
 
+    const commands = this.getEffectiveProjectCommands(projectId);
+    const dashboard = this.buildProjectDashboard(projectId);
+    const agenda = this.projects.buildAgenda(projectId);
+    const agendaOperational = this.intelligence.buildAgendaOperational(this.projects.listTasks(projectId), commands);
     const summarySnapshot = this.getProjectSummary(projectId);
+    const profile = this.resolveProjectProfile(projectId);
+    const validation = this.getProjectValidation(projectId);
+    const git = this.getProjectGit(projectId);
+    const timeline = this.intelligence.buildTimeline(
+      this.projects.listTasks(projectId),
+      this.projects.listMilestones(projectId),
+      this.projects.listLogs(projectId, 60),
+      commands,
+      validation,
+      git,
+    );
 
     return {
       project: workspace.project,
       settings: workspace.settings,
       personality: summarySnapshot.personality,
-      dashboard: this.buildProjectDashboard(projectId),
+      profile,
+      dashboard,
       tasks: this.projects.listTasks(projectId),
       milestones: this.projects.listMilestones(projectId),
-      agenda: this.projects.buildAgenda(projectId),
+      agenda,
+      agendaOperational,
+      radar: this.intelligence.buildRadar(
+        workspace.project,
+        profile,
+        dashboard,
+        this.projects.listTasks(projectId),
+        this.projects.listMilestones(projectId),
+        this.projects.listLogs(projectId, 40),
+        commands,
+        agendaOperational,
+      ),
+      taskBoard: this.intelligence.buildTaskBoard(this.projects.listTasks(projectId), commands, agendaOperational),
+      timeline,
+      git,
+      validation,
+      digest: this.intelligence.buildDigest(
+        workspace.project,
+        dashboard,
+        agendaOperational,
+        this.projects.listLogs(projectId, 40),
+        commands,
+      ),
       logs: this.projects.listLogs(projectId, 30),
-      commands: this.getProjectCommands(projectId, 30),
+      commands: commands.slice(0, 30).map((command) => this.toUiCommand(command)),
       report: this.getProjectLogReport(projectId),
       files: this.projectFiles.getOverview(projectId),
       summary: summarySnapshot.summary,
@@ -381,6 +458,144 @@ export class IntegrationRuntime {
 
   getProjectSummary(projectId: string): ProjectSummarySnapshot {
     return this.summaries.buildSummary(this.buildProjectSummarySource(projectId));
+  }
+
+  getProjectAgendaOperational(projectId: string): ProjectAgendaOperationalSnapshot {
+    return this.intelligence.buildAgendaOperational(
+      this.projects.listTasks(projectId),
+      this.getEffectiveProjectCommands(projectId),
+    );
+  }
+
+  getProjectTaskBoard(projectId: string): ProjectTaskBoardSnapshot {
+    const commands = this.getEffectiveProjectCommands(projectId);
+    const agendaOperational = this.getProjectAgendaOperational(projectId);
+    return this.intelligence.buildTaskBoard(this.projects.listTasks(projectId), commands, agendaOperational);
+  }
+
+  getProjectRadar(projectId: string): ProjectRadarSnapshot {
+    const workspace = this.projects.getProject(projectId);
+
+    if (!workspace) {
+      throw new Error(`Projeto nao encontrado: ${projectId}`);
+    }
+
+    const commands = this.getEffectiveProjectCommands(projectId);
+    const agendaOperational = this.getProjectAgendaOperational(projectId);
+
+    return this.intelligence.buildRadar(
+      workspace.project,
+      this.resolveProjectProfile(projectId),
+      this.buildProjectDashboard(projectId),
+      this.projects.listTasks(projectId),
+      this.projects.listMilestones(projectId),
+      this.projects.listLogs(projectId, 40),
+      commands,
+      agendaOperational,
+    );
+  }
+
+  dispatchRadarAction(projectId: string, actionId: string) {
+    const radar = this.getProjectRadar(projectId);
+    const action = radar.actions.find((item) => item.id === actionId);
+
+    if (!action) {
+      throw new Error(`Acao de radar nao encontrada: ${actionId}`);
+    }
+
+    return this.acceptCommand({
+      source: "system",
+      target: action.target,
+      kind: "task",
+      payload: {
+        text: action.commandText,
+      },
+      meta: {
+        channel: "ui",
+        projectId,
+        initiatedFrom: "manual_dispatch",
+      },
+    });
+  }
+
+  getProjectTimeline(projectId: string): ProjectTimelineEvent[] {
+    return this.intelligence.buildTimeline(
+      this.projects.listTasks(projectId),
+      this.projects.listMilestones(projectId),
+      this.projects.listLogs(projectId, 60),
+      this.getEffectiveProjectCommands(projectId),
+      this.getProjectValidation(projectId),
+      this.getProjectGit(projectId),
+    );
+  }
+
+  getProjectGit(projectId: string): ProjectGitSnapshot {
+    if (!this.projects.hasLinkedProjectRoot(projectId)) {
+      return {
+        available: false,
+        clean: true,
+        ahead: 0,
+        behind: 0,
+        summary: "Este projeto ainda nao esta ligado a uma pasta real, entao o painel de Git fica indisponivel.",
+        changedFiles: [],
+        recentCommits: [],
+      };
+    }
+
+    return this.projectGit.getSnapshot(this.projects.getProjectRoot(projectId));
+  }
+
+  getProjectValidation(projectId: string): ProjectValidationSnapshot {
+    return this.projectValidation.getLatest(projectId);
+  }
+
+  async runProjectValidation(projectId: string, triggeredBy = "manual"): Promise<ProjectValidationSnapshot> {
+    if (!this.projects.hasLinkedProjectRoot(projectId)) {
+      return {
+        status: "warning",
+        lastRunAt: new Date().toISOString(),
+        triggeredBy,
+        summary: "A validacao foi pulada porque o projeto ainda nao esta ligado a uma pasta real.",
+        steps: [{
+          id: "workspace",
+          label: "Workspace",
+          status: "skipped",
+          summary: "Ligue o projeto a uma pasta para liberar check, build e validacao automatica.",
+        }],
+      };
+    }
+
+    const result = await this.projectValidation.run(projectId, this.projects.getProjectRoot(projectId), triggeredBy);
+    this.projectGit.invalidate(this.projects.getProjectRoot(projectId));
+    return result;
+  }
+
+  getProjectDigest(projectId: string): ProjectDigestSnapshot {
+    const workspace = this.projects.getProject(projectId);
+
+    if (!workspace) {
+      throw new Error(`Projeto nao encontrado: ${projectId}`);
+    }
+
+    return this.intelligence.buildDigest(
+      workspace.project,
+      this.buildProjectDashboard(projectId),
+      this.getProjectAgendaOperational(projectId),
+      this.projects.listLogs(projectId, 40),
+      this.getEffectiveProjectCommands(projectId),
+    );
+  }
+
+  searchProject(projectId: string, query: string): ProjectSearchSnapshot {
+    return this.search.search({
+      query,
+      tasks: this.projects.listTasks(projectId),
+      milestones: this.projects.listMilestones(projectId),
+      logs: this.projects.listLogs(projectId, 80),
+      commands: this.getEffectiveProjectCommands(projectId),
+      files: this.projectFiles.getOverview(projectId),
+      summary: this.getProjectSummary(projectId),
+    });
   }
 
   async ensureProjectSummaryAudio(projectId: string) {
@@ -614,6 +829,16 @@ export class IntegrationRuntime {
         ? settings.personalityIntensity
         : "medium",
     };
+  }
+
+  private resolveProjectProfile(projectId: string): ProjectProfileDefinition {
+    const workspace = this.projects.getProject(projectId);
+
+    if (!workspace) {
+      throw new Error(`Projeto nao encontrado: ${projectId}`);
+    }
+
+    return resolveProjectProfile(workspace.project, workspace.settings);
   }
 
   private appendCommandProjectLog(

@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getNexusHome, getTargetProjectRoot, resolveNexusPath } from "../core/paths";
 import { JsonFileStore } from "../core/storage";
 import { inspectWorkspaceSeed, isDiscoveryManagedText } from "./discovery";
+import { resolveProjectProfile } from "../services/projectProfiles";
 import {
   NexusMilestone,
   NexusProject,
@@ -83,6 +84,11 @@ export class NexusProjectsService {
       : resolve(getNexusHome(), configuredRoot);
   }
 
+  hasLinkedProjectRoot(projectId: string) {
+    const workspace = this.getProject(projectId);
+    return Boolean(this.normalizeProjectRootInput(workspace?.settings.projectRoot));
+  }
+
   createProject(input: {
     name?: string;
     description?: string;
@@ -115,6 +121,7 @@ export class NexusProjectsService {
         icon: input.settings?.icon?.trim() || discovered?.settings.icon,
         personalityMode: input.settings?.personalityMode,
         personalityIntensity: input.settings?.personalityIntensity,
+        profileId: input.settings?.profileId ?? discovered?.settings.profileId,
         stackHint: input.settings?.stackHint?.trim() || discovered?.settings.stackHint,
         lastIndexedAt: input.settings?.lastIndexedAt?.trim() || discovered?.settings.lastIndexedAt,
       },
@@ -619,6 +626,16 @@ export class NexusProjectsService {
         projectRoot: root,
         personalityMode: "sarcastic",
         personalityIntensity: "medium",
+        profileId: resolveProjectProfile({
+          id: projectId,
+          name,
+          description: `Projeto inicial conectado ao Nexus em ${root}.`,
+          createdAt: now,
+          state: "active",
+        }, {
+          projectRoot: root,
+          stackHint: "workspace local",
+        }).id,
         stackHint: "workspace local",
         lastIndexedAt: now,
       },
