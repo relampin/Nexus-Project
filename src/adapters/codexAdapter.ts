@@ -9,7 +9,7 @@ export class CodexAdapter implements AgentAdapter {
 
   async execute(command: CommandRecord, context: AdapterContext): Promise<DispatchResult> {
     const external = this.createExternalDispatch(command, context);
-    const response = this.runOpenClaw(command, external);
+    const response = await this.runOpenClaw(command, external);
 
     writeFileSync(external.responseFile, `${JSON.stringify(response, null, 2)}\n`, "utf-8");
 
@@ -88,13 +88,15 @@ export class CodexAdapter implements AgentAdapter {
     };
   }
 
-  private runOpenClaw(command: CommandRecord, external: ExternalDispatch) {
+  private async runOpenClaw(command: CommandRecord, external: ExternalDispatch) {
     const cli = this.resolveOpenClawCli();
     const workspace = process.env.OPENCLAW_WORKSPACE ?? process.env.CODEX_WORKSPACE ?? external.projectRoot ?? getTargetProjectRoot();
     const agentId = this.getAgentId();
     const model = process.env.OPENCLAW_MODEL ?? "openai-codex/gpt-5.4";
     const thinking = process.env.OPENCLAW_THINKING ?? "medium";
     const timeoutMs = Number(process.env.OPENCLAW_TIMEOUT_MS ?? 600000);
+    const retryAttempts = Number(process.env.OPENCLAW_LOCK_RETRY_ATTEMPTS ?? 2);
+    const retryDelayMs = Number(process.env.OPENCLAW_LOCK_RETRY_DELAY_MS ?? 5000);
 
     if (!existsSync(workspace)) {
       throw new Error(`OpenClaw workspace not found: ${workspace}`);
@@ -114,13 +116,24 @@ export class CodexAdapter implements AgentAdapter {
       `Job id: ${command.id}.`,
     ].join(" ");
 
-    const result = this.runCli(
+    let result = this.runCli(
       cli,
       ["agent", "--local", "--json", "--agent", agentId, "--thinking", thinking, "--message", prompt],
       workspace,
       timeoutMs,
       10 * 1024 * 1024,
     );
+
+    for (let attempt = 1; attempt <= retryAttempts && this.isSessionLockResult(result); attempt += 1) {
+      await this.delay(retryDelayMs);
+      result = this.runCli(
+        cli,
+        ["agent", "--local", "--json", "--agent", agentId, "--thinking", thinking, "--message", prompt],
+        workspace,
+        timeoutMs,
+        10 * 1024 * 1024,
+      );
+    }
 
     if (result.error) {
       throw new Error(`OpenClaw nao conseguiu rodar: ${result.error.message}`);
@@ -156,6 +169,11 @@ export class CodexAdapter implements AgentAdapter {
     }
 
     return response;
+  }
+
+  private isSessionLockResult(result: ReturnType<typeof spawnSync>) {
+    const stderr = typeof result.stderr === "string" ? result.stderr : "";
+    return /session file locked/i.test(stderr);
   }
 
   private ensureOpenClawAgent(cli: string, workspace: string, agentId: string, model: string) {
@@ -277,5 +295,9 @@ export class CodexAdapter implements AgentAdapter {
         shell: process.platform === "win32",
       },
     );
+  }
+
+  private delay(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

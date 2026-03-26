@@ -654,6 +654,11 @@ pre { background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 8px; border: 1p
                                     <div style="font-size:0.76rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--secondary); font-weight:600;">Leitura automatizada dos logs</div>
                                     <div id="logReaderStatus" style="font-size:0.76rem; color:var(--text-muted);">Aguardando sinais do projeto...</div>
                                 </div>
+                                <div id="logReaderFocus" style="font-size:0.84rem; color:var(--text); line-height:1.45; margin-bottom:0.75rem; padding:0.75rem 0.8rem; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:rgba(0,0,0,0.12);">
+                                    A IA ainda nao tem foco sugerido a partir dos logs.
+                                </div>
+                                <div id="logReaderSignals" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:0.45rem; margin-bottom:0.75rem;">
+                                </div>
                                 <div id="logReaderList" style="display:flex; flex-direction:column; gap:0.5rem;">
                                     <div style="font-size:0.84rem; color:var(--text-muted); line-height:1.45;">O painel ainda vai consolidar os sinais recentes do projeto aqui.</div>
                                 </div>
@@ -1223,11 +1228,33 @@ function renderActiveProject() {
 
     const latestEntries = Array.isArray(report.latestEntries) ? report.latestEntries : [];
     const logReaderStatus = document.getElementById('logReaderStatus');
+    const logReaderFocus = document.getElementById('logReaderFocus');
+    const logReaderSignals = document.getElementById('logReaderSignals');
     const logReaderList = document.getElementById('logReaderList');
     const totalSignals = Number(report.total || projectLogs.length || 0);
+    const warningCount = projectLogs.filter(entry => entry.status === 'warning').length;
+    const errorCount = projectLogs.filter(entry => entry.status === 'error').length;
+    const successCount = projectLogs.filter(entry => entry.status === 'success').length;
+    const latestWarning = projectLogs.find(entry => entry.status === 'warning' || entry.status === 'error');
+    const recommendedFocus = latestWarning?.summary
+        || snap.dashboard?.status?.nextFocus
+        || latestEntries[0]
+        || 'Sem foco recomendado no momento.';
     logReaderStatus.textContent = totalSignals > 0
         ? `${totalSignals} sinal${totalSignals === 1 ? '' : 's'} consolidados para leitura futura por IA`
         : 'Sem sinais suficientes ainda';
+    logReaderFocus.innerHTML = `<strong style="color:var(--secondary);">Foco sugerido pela trilha de logs:</strong> ${recommendedFocus}`;
+    logReaderSignals.innerHTML = [
+        { label: 'Alertas', value: warningCount + errorCount, color: 'var(--warning)' },
+        { label: 'Erros', value: errorCount, color: 'var(--danger)' },
+        { label: 'Sucessos', value: successCount, color: 'var(--success)' },
+        { label: 'Agentes', value: Object.values(mergedAgentSummary).filter(Boolean).length, color: 'var(--secondary)' }
+    ].map(item => `
+        <div style="padding:0.55rem 0.65rem; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:rgba(0,0,0,0.16);">
+            <div style="font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-muted); margin-bottom:0.2rem;">${item.label}</div>
+            <div style="font-size:1.05rem; font-family:var(--font-mono); color:${item.color};">${item.value}</div>
+        </div>
+    `).join('');
     logReaderList.innerHTML = latestEntries.length
         ? latestEntries.slice(0, 4).map((entry, index) => `
             <div style="display:flex; gap:0.7rem; align-items:flex-start; padding:0.7rem 0.8rem; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:rgba(0,0,0,0.16);">

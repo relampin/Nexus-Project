@@ -219,6 +219,7 @@ export function createProjectsRouter(runtime: IntegrationRuntime) {
         },
       });
 
+      void runtime.worker.processPending();
       res.status(201).json(runtime.getUiCommand(command.id));
     } catch (error) {
       handleProjectError(error, res, next);

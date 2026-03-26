@@ -80,6 +80,7 @@ export function createUiRouter(runtime: IntegrationRuntime) {
         },
       });
 
+      void runtime.worker.processPending();
       res.status(201).json(runtime.getUiCommand(command.id));
     } catch (error) {
       next(error);
