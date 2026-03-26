@@ -352,15 +352,578 @@ textarea {
 .btn-secondary:hover { background: rgba(255,255,255,0.1); }
 .full-width { width: 100%; }
 
-/* Commands list */
-.command-list { display: flex; flex-direction: column; gap: 0.75rem; }
-.cmd-item {
-  background: rgba(0,0,0,0.3); border: 1px solid var(--border);
-  padding: 0.75rem; border-radius: 8px; cursor: pointer; transition: 0.2s;
+/* Commands rail */
+.commands-rail-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
-.cmd-item:hover { border-color: rgba(255,255,255,0.2); }
-.cmd-text { font-size: 0.85rem; color: var(--text); white-space: pre-wrap; word-break: break-word; line-height: 1.4; margin-bottom: 0.5rem; }
-.cmd-meta { display: flex; justify-content: space-between; align-items: center; }
+.commands-rail-copy {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.commands-rail-hint {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  max-width: 760px;
+}
+.command-list {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.35rem;
+  scroll-snap-type: x proximity;
+}
+.cmd-item {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+  flex: 0 0 min(380px, calc(100vw - 8rem));
+  scroll-snap-align: start;
+}
+.cmd-item:hover {
+  border-color: rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.025);
+}
+.cmd-item.expanded {
+  border-color: rgba(6, 182, 212, 0.3);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16);
+}
+.cmd-header {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+  cursor: pointer;
+  text-align: left;
+}
+.cmd-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.cmd-chevron {
+  color: var(--secondary);
+  font-size: 0.82rem;
+  line-height: 1;
+  margin-top: 0.35rem;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.cmd-item.expanded .cmd-chevron {
+  transform: rotate(90deg);
+  color: var(--primary);
+}
+.cmd-summary {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.cmd-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+.cmd-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+}
+.cmd-route {
+  font-size: 0.73rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.cmd-snippet {
+  color: var(--text-muted);
+  font-size: 0.83rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cmd-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.cmd-details {
+  display: none;
+  padding: 0 1rem 1rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.cmd-item.expanded .cmd-details {
+  display: block;
+}
+.cmd-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  padding-top: 0.85rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.cmd-detail-text {
+  font-size: 0.86rem;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 8px;
+  padding: 0.9rem;
+}
+.cmd-detail-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+.cmd-open-btn {
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.45rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+.cmd-open-btn:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.18);
+}
+
+.workspace-rail-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.file-list-rail {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.35rem;
+  scroll-snap-type: x proximity;
+}
+.file-item {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  flex: 0 0 min(420px, calc(100vw - 8rem));
+  scroll-snap-align: start;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.file-item:hover {
+  border-color: rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.025);
+}
+.file-item.expanded {
+  border-color: rgba(6, 182, 212, 0.3);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16);
+}
+.file-header {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+.file-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.file-chevron {
+  color: var(--secondary);
+  font-size: 0.82rem;
+  line-height: 1;
+  margin-top: 0.35rem;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.file-item.expanded .file-chevron {
+  transform: rotate(90deg);
+  color: var(--primary);
+}
+.file-summary {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.file-path {
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  word-break: break-word;
+  color: var(--text);
+  font-weight: 600;
+}
+.file-snippet {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.file-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.file-details {
+  display: none;
+  padding: 0 1rem 1rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.file-item.expanded .file-details {
+  display: block;
+}
+.file-preview {
+  margin-top: 0.85rem;
+  padding: 0.9rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.025);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.file-detail-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+.file-open-btn {
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.45rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+.file-open-btn:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.18);
+}
+
+.logs-rail-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.logs-rail-top {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.1fr) minmax(260px, 0.9fr);
+  gap: 1rem;
+}
+.logs-summary-card {
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.18);
+}
+.logs-activity-rail {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.35rem;
+  scroll-snap-type: x proximity;
+}
+.log-card {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  flex: 0 0 min(400px, calc(100vw - 8rem));
+  scroll-snap-align: start;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.log-card:hover {
+  border-color: rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.025);
+}
+.log-card.expanded {
+  border-color: rgba(139, 92, 246, 0.35);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16);
+}
+.log-card-header {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+.log-card-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.log-chevron {
+  color: var(--primary);
+  font-size: 0.82rem;
+  line-height: 1;
+  margin-top: 0.35rem;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.log-card.expanded .log-chevron {
+  transform: rotate(90deg);
+  color: var(--secondary);
+}
+.log-card-summary {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.log-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+.log-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+}
+.log-subtitle {
+  font-size: 0.73rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.log-snippet {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.log-card-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.log-card-details {
+  display: none;
+  padding: 0 1rem 1rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.log-card.expanded .log-card-details {
+  display: block;
+}
+.log-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  padding-top: 0.85rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.log-detail-text {
+  font-size: 0.84rem;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 8px;
+  padding: 0.9rem;
+}
+.radar-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.radar-copy {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.65;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.025);
+}
+.radar-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+.radar-card {
+  padding: 0.95rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.2);
+}
+.radar-card-title {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+  font-weight: 700;
+}
+.radar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.radar-list-item {
+  font-size: 0.86rem;
+  color: var(--text);
+  line-height: 1.5;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.02);
+}
+.radar-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+.radar-stat {
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.025);
+}
+.radar-stat-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.3rem;
+}
+.radar-stat-value {
+  font-size: 1.05rem;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+@media (max-width: 860px) {
+  .commands-rail-copy {
+    flex-direction: column;
+  }
+  .logs-rail-top {
+    grid-template-columns: 1fr;
+  }
+  .radar-grid,
+  .radar-stats {
+    grid-template-columns: 1fr;
+  }
+  .command-list {
+    gap: 0.85rem;
+  }
+  .logs-activity-rail {
+    gap: 0.85rem;
+  }
+  .cmd-item {
+    flex-basis: min(86vw, 340px);
+  }
+  .file-item {
+    flex-basis: min(88vw, 360px);
+  }
+  .log-card {
+    flex-basis: min(88vw, 360px);
+  }
+  .cmd-header {
+    flex-direction: column;
+  }
+  .file-header {
+    flex-direction: column;
+  }
+  .log-card-header {
+    flex-direction: column;
+  }
+  .cmd-actions {
+    width: 100%;
+    justify-content: flex-start;
+    padding-left: 1.55rem;
+  }
+  .file-actions {
+    width: 100%;
+    justify-content: flex-start;
+    padding-left: 1.55rem;
+  }
+  .log-card-actions {
+    width: 100%;
+    justify-content: flex-start;
+    padding-left: 1.55rem;
+  }
+}
 
 /* Alerts */
 .alert-box {
@@ -614,17 +1177,17 @@ pre { background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 8px; border: 1p
                             </div>
                         </div>
 
-                        <div class="glass-panel" style="margin-top: 1.5rem; border-color: rgba(6, 182, 212, 0.28); background: rgba(18, 18, 20, 0.75);">
+                        <div class="glass-panel" style="margin-top: 1.5rem; border-color: rgba(6, 182, 212, 0.28); background: rgba(18, 18, 20, 0.75); display: none;">
                             <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
                                 <h2 style="color: var(--secondary); font-size: 1.1rem; font-weight: 600; margin: 0; display:flex; align-items:center; gap:0.5rem;"><span>🗂️</span> Mapa do Workspace</h2>
-                                <div id="filesCountBadge" class="badge" style="background:rgba(6, 182, 212, 0.1); border:1px solid rgba(6, 182, 212, 0.2); color:var(--secondary); font-size:0.65rem;">0 arquivos</div>
+                                <div id="legacyFilesCountBadge" class="badge" style="background:rgba(6, 182, 212, 0.1); border:1px solid rgba(6, 182, 212, 0.2); color:var(--secondary); font-size:0.65rem;">0 arquivos</div>
                             </div>
-                            <div id="filesSynopsis" style="font-size: 0.85rem; color: var(--text); line-height: 1.6; background: rgba(255,255,255,0.02); border-radius: 8px; padding: 1rem; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 1rem;">
+                            <div id="legacyFilesSynopsis" style="font-size: 0.85rem; color: var(--text); line-height: 1.6; background: rgba(255,255,255,0.02); border-radius: 8px; padding: 1rem; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 1rem;">
                                 O Nexus ainda está lendo o workspace...
                             </div>
-                            <div id="filesStats" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:0.5rem; margin-bottom: 1.25rem;">
+                            <div id="legacyFilesStats" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:0.5rem; margin-bottom: 1.25rem;">
                             </div>
-                            <div id="filesList" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div id="legacyFilesList" style="display: flex; flex-direction: column; gap: 0.5rem;">
                                 <div style="color: var(--text-muted); font-size: 0.85rem; padding: 1rem; text-align: center; border: 1px dashed var(--border); border-radius: 8px;">Nenhum arquivo indexado ainda.</div>
                             </div>
                         </div>
@@ -632,39 +1195,64 @@ pre { background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 8px; border: 1p
 
                     <!-- Middle Column: AI Logs -->
                     <div class="panel-col">
-                        <div class="glass-panel" style="display: flex; flex-direction: column;">
+                        <div class="glass-panel radar-panel" id="projectRadarPanel">
+                            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0;">
+                                <h2>Radar do Projeto</h2>
+                                <div id="radarStateBadge" class="badge">--</div>
+                            </div>
+                            <div id="radarCopy" class="radar-copy">O Nexus vai preencher esta leitura com o que entendeu do projeto ativo.</div>
+                            <div class="radar-grid">
+                                <div class="radar-card">
+                                    <div class="radar-card-title">Próximos checkpoints</div>
+                                    <div id="radarChecklist" class="radar-list">
+                                        <div class="radar-list-item">Nenhum checkpoint mapeado ainda.</div>
+                                    </div>
+                                </div>
+                                <div class="radar-card">
+                                    <div class="radar-card-title">Saúde operacional</div>
+                                    <div id="radarStats" class="radar-stats">
+                                        <div class="radar-stat">
+                                            <div class="radar-stat-label">Tarefas abertas</div>
+                                            <div class="radar-stat-value">0</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-panel" style="display: none; flex-direction: column;">
                             <div class="panel-header" style="flex-shrink: 0;">
                                 <h2>AI Logs & Narrative</h2>
                             </div>
-                            <div id="logsScopeInfo" style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                            <div id="legacyLogsScopeInfo" style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem;">
                                 Carregando escopo dos logs...
                             </div>
                             
                             <!-- Future automated text reading area -->
-                            <div class="auto-narrative" id="autoNarrativeBox">
+                            <div class="auto-narrative" id="legacyAutoNarrativeBox">
                                 Resumo automático gerado pelo Cortex ou Codex aparecerá aqui...
                             </div>
                             
-                            <div class="agent-stats" id="agentStatsBox">
+                            <div class="agent-stats" id="legacyAgentStatsBox">
                                 <!-- Codex: 0 | Antigravity: 0 -->
                             </div>
 
-                            <div id="logReaderSummary" style="margin-bottom: 1rem; padding: 0.9rem 1rem; border-radius: 10px; border: 1px solid rgba(6, 182, 212, 0.18); background: rgba(6, 182, 212, 0.06);">
+                            <div id="legacyLogReaderSummary" style="margin-bottom: 1rem; padding: 0.9rem 1rem; border-radius: 10px; border: 1px solid rgba(6, 182, 212, 0.18); background: rgba(6, 182, 212, 0.06);">
                                 <div style="display:flex; justify-content:space-between; gap:0.75rem; align-items:center; margin-bottom:0.65rem; flex-wrap:wrap;">
                                     <div style="font-size:0.76rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--secondary); font-weight:600;">Leitura automatizada dos logs</div>
-                                    <div id="logReaderStatus" style="font-size:0.76rem; color:var(--text-muted);">Aguardando sinais do projeto...</div>
+                                    <div id="legacyLogReaderStatus" style="font-size:0.76rem; color:var(--text-muted);">Aguardando sinais do projeto...</div>
                                 </div>
-                                <div id="logReaderFocus" style="font-size:0.84rem; color:var(--text); line-height:1.45; margin-bottom:0.75rem; padding:0.75rem 0.8rem; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:rgba(0,0,0,0.12);">
+                                <div id="legacyLogReaderFocus" style="font-size:0.84rem; color:var(--text); line-height:1.45; margin-bottom:0.75rem; padding:0.75rem 0.8rem; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:rgba(0,0,0,0.12);">
                                     A IA ainda não tem foco sugerido a partir dos logs.
                                 </div>
-                                <div id="logReaderSignals" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:0.45rem; margin-bottom:0.75rem;">
+                                <div id="legacyLogReaderSignals" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:0.45rem; margin-bottom:0.75rem;">
                                 </div>
-                                <div id="logReaderList" style="display:flex; flex-direction:column; gap:0.5rem;">
+                                <div id="legacyLogReaderList" style="display:flex; flex-direction:column; gap:0.5rem;">
                                     <div style="font-size:0.84rem; color:var(--text-muted); line-height:1.45;">O painel ainda vai consolidar os sinais recentes do projeto aqui.</div>
                                 </div>
                             </div>
 
-                            <div class="timeline" id="projectTimeline" style="flex: 1;">
+                            <div class="timeline" id="legacyProjectTimeline" style="flex: 1;">
                                 <!-- Activity injected here -->
                             </div>
                         </div>
@@ -702,17 +1290,76 @@ pre { background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 8px; border: 1p
                             </form>
                         </div>
 
-                        <div class="glass-panel" style="margin-top: 1.5rem;">
-                            <div class="panel-header">
-                                <h2>Comandos Recentes</h2>
-                            </div>
-                            <div class="command-list" id="commandsList">
-                                <!-- Commands injected here -->
-                            </div>
-                        </div>
                     </div>
 
                 </div>
+                <section class="glass-panel workspace-rail-panel" style="margin-top: 1.5rem; border-color: rgba(6, 182, 212, 0.28); background: rgba(18, 18, 20, 0.75);">
+                    <div class="commands-rail-copy">
+                        <div class="panel-header" style="margin-bottom: 0;">
+                            <h2 style="color: var(--secondary); font-size: 1.1rem; font-weight: 600; margin: 0; display:flex; align-items:center; gap:0.5rem;"><span>ðŸ—‚ï¸</span> Mapa do Workspace</h2>
+                            <div class="commands-rail-hint">O resumo do workspace continua aqui em cima, mas os arquivos mais relevantes agora ficam em cards horizontais. Expanda só o que quiser e abra o preview completo quando precisar.</div>
+                        </div>
+                        <div id="filesCountBadge" class="badge" style="background:rgba(6, 182, 212, 0.1); border:1px solid rgba(6, 182, 212, 0.2); color:var(--secondary); font-size:0.65rem;">0 arquivos</div>
+                    </div>
+                    <div id="filesSynopsis" style="font-size: 0.85rem; color: var(--text); line-height: 1.6; background: rgba(255,255,255,0.02); border-radius: 8px; padding: 1rem; border: 1px solid rgba(255,255,255,0.05);">
+                        O Nexus ainda estÃ¡ lendo o workspace...
+                    </div>
+                    <div id="filesStats" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:0.5rem;">
+                    </div>
+                    <div id="filesList" class="file-list-rail">
+                        <div style="color: var(--text-muted); font-size: 0.85rem; padding: 1rem; text-align: center; border: 1px dashed var(--border); border-radius: 8px;">Nenhum arquivo indexado ainda.</div>
+                    </div>
+                </section>
+
+                <section class="glass-panel logs-rail-panel" style="margin-top: 1.5rem;">
+                    <div class="commands-rail-copy">
+                        <div class="panel-header" style="margin-bottom: 0;">
+                            <h2>AI Logs & Narrative</h2>
+                            <div class="commands-rail-hint">Os logs agora ficam nesta faixa de baixo, com resumo do que o Nexus entendeu e cards horizontais para você abrir só os eventos que quiser inspecionar.</div>
+                        </div>
+                    </div>
+                    <div id="logsScopeInfo" style="font-size: 0.78rem; color: var(--text-muted);">
+                        Carregando escopo dos logs...
+                    </div>
+                    <div class="logs-rail-top">
+                        <div class="logs-summary-card">
+                            <div class="auto-narrative" id="autoNarrativeBox" style="margin-bottom: 0.85rem;">
+                                Resumo automático gerado pelo Cortex ou Codex aparecerá aqui...
+                            </div>
+                            <div class="agent-stats" id="agentStatsBox" style="margin-bottom: 0;">
+                            </div>
+                        </div>
+                        <div id="logReaderSummary" class="logs-summary-card" style="border: 1px solid rgba(6, 182, 212, 0.18); background: rgba(6, 182, 212, 0.06);">
+                            <div style="display:flex; justify-content:space-between; gap:0.75rem; align-items:center; margin-bottom:0.65rem; flex-wrap:wrap;">
+                                <div style="font-size:0.76rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--secondary); font-weight:600;">Leitura automatizada dos logs</div>
+                                <div id="logReaderStatus" style="font-size:0.76rem; color:var(--text-muted);">Aguardando sinais do projeto...</div>
+                            </div>
+                            <div id="logReaderFocus" style="font-size:0.84rem; color:var(--text); line-height:1.45; margin-bottom:0.75rem; padding:0.75rem 0.8rem; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:rgba(0,0,0,0.12);">
+                                A IA ainda não tem foco sugerido a partir dos logs.
+                            </div>
+                            <div id="logReaderSignals" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:0.45rem; margin-bottom:0.75rem;">
+                            </div>
+                            <div id="logReaderList" style="display:flex; flex-direction:column; gap:0.5rem;">
+                                <div style="font-size:0.84rem; color:var(--text-muted); line-height:1.45;">O painel ainda vai consolidar os sinais recentes do projeto aqui.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="projectTimeline" class="logs-activity-rail">
+                        <div style="color:var(--text-muted); font-size:0.85rem;">Nenhuma atividade recente.</div>
+                    </div>
+                </section>
+
+                <section class="glass-panel commands-rail-panel" style="margin-top: 1.5rem;">
+                    <div class="commands-rail-copy">
+                        <div class="panel-header" style="margin-bottom: 0;">
+                            <h2>Comandos Recentes</h2>
+                            <div class="commands-rail-hint">Os comandos ficam nesta trilha horizontal no rodapé do painel. Cada card mostra um resumo curto e você expande só quando quiser ver o conteúdo completo.</div>
+                        </div>
+                    </div>
+                    <div class="command-list" id="commandsList">
+                        <!-- Commands injected here -->
+                    </div>
+                </section>
             </div>
         </main>
     </div>
@@ -760,7 +1407,10 @@ let globalState = {
     projects: [],
     activeProject: null,
     stats: {},
-    activity: []
+    activity: [],
+    commandExpansion: {},
+    fileExpansion: {},
+    logExpansion: {}
 };
 let projectModalMode = 'create';
 let currentAudio = null;
@@ -872,6 +1522,212 @@ function formatStatusBadgeClass(status) {
     if (status === 'completed') return 'badge badge-state-active';
     if (status === 'failed') return 'badge badge-health-risky';
     return 'badge badge-health-steady';
+}
+
+function clipText(value, maxLength = 160) {
+    const text = textOrFallback(value);
+    if (text.length <= maxLength) return text;
+    return text.slice(0, Math.max(0, maxLength - 1)).trimEnd() + '…';
+}
+
+function formatCommandStatusText(status) {
+    const labels = {
+        pending: 'Pendente',
+        processing: 'Processando',
+        awaiting_external: 'Aguardando agente',
+        completed: 'Concluído',
+        failed: 'Falhou'
+    };
+    return labels[String(status || '').toLowerCase()] || textOrFallback(status, 'Desconhecido');
+}
+
+function formatCommandRoute(command) {
+    return `${textOrFallback(command?.source, 'system')} -> ${textOrFallback(command?.target, 'agent')}`;
+}
+
+function getCommandText(command) {
+    return textOrFallback(command?.payload?.text, 'Sem instrução clara.');
+}
+
+function getCommandTitle(command) {
+    const metaTitle = textOrFallback(command?.meta?.taskTitle);
+    if (metaTitle) return metaTitle;
+
+    const firstMeaningfulLine = getCommandText(command)
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .find(line => line && !/^contexto\b/i.test(line));
+
+    return clipText(firstMeaningfulLine || 'Sem instrução clara.', 90);
+}
+
+function getCommandSnippet(command) {
+    const rawLines = getCommandText(command)
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+    const cleaned = rawLines.filter(line => line !== getCommandTitle(command));
+    return clipText(cleaned.join(' '), 180) || 'Clique na seta para ver o conteúdo completo.';
+}
+
+function syncCommandExpansionState(commands) {
+    const current = globalState.commandExpansion || {};
+    const next = {};
+
+    (Array.isArray(commands) ? commands : []).forEach(command => {
+        if (current[command.id]) {
+            next[command.id] = true;
+        }
+    });
+
+    globalState.commandExpansion = next;
+}
+
+function renderCommandsList(commands) {
+    const list = document.getElementById('commandsList');
+    const items = Array.isArray(commands) ? commands : [];
+
+    syncCommandExpansionState(items);
+
+    if (!items.length) {
+        list.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;">Lista vazia.</div>';
+        return;
+    }
+
+    list.innerHTML = items.map(command => {
+        const expanded = Boolean(globalState.commandExpansion?.[command.id]);
+        const route = formatCommandRoute(command).toUpperCase();
+        const title = getCommandTitle(command);
+        const snippet = getCommandSnippet(command);
+        const updatedAt = command.updatedAt ? new Date(command.updatedAt).toLocaleString() : '--';
+        const detailText = safeHtml(getCommandText(command)).replace(/\n/g, '<br/>');
+
+        return `
+            <div class="cmd-item${expanded ? ' expanded' : ''}" data-command-id="${command.id}">
+                <button type="button" class="cmd-header" onclick="toggleCommandExpand('${command.id}')">
+                    <div class="cmd-main">
+                        <span class="cmd-chevron">▶</span>
+                        <div class="cmd-summary">
+                            <div class="cmd-title-row">
+                                <span class="cmd-title">${safeHtml(title)}</span>
+                                <span class="cmd-route">${safeHtml(route)}</span>
+                            </div>
+                            <div class="cmd-snippet">${safeHtml(snippet)}</div>
+                        </div>
+                    </div>
+                    <div class="cmd-actions">
+                        <span class="badge" style="background:var(--bg); border:1px solid var(--border); color:var(--text-muted);">${safeHtml(textOrFallback(command.target, 'agent'))}</span>
+                        <span class="${formatStatusBadgeClass(command.status)}">${safeHtml(formatCommandStatusText(command.status))}</span>
+                    </div>
+                </button>
+                <div class="cmd-details">
+                    <div class="cmd-detail-meta">
+                        <span>${safeHtml(updatedAt)}</span>
+                        <span>${safeHtml(textOrFallback(command.kind, 'task')).toUpperCase()}</span>
+                        <span>${safeHtml(route)}</span>
+                    </div>
+                    <div class="cmd-detail-text">${detailText}</div>
+                    <div class="cmd-detail-footer">
+                        <button type="button" class="cmd-open-btn" onclick="openCommandDrawer('${command.id}')">Abrir detalhes</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function toggleCommandExpand(commandId) {
+    globalState.commandExpansion = {
+        ...(globalState.commandExpansion || {}),
+        [commandId]: !globalState.commandExpansion?.[commandId]
+    };
+
+    const item = document.querySelector(`.cmd-item[data-command-id="${commandId}"]`);
+    if (item) {
+        item.classList.toggle('expanded', Boolean(globalState.commandExpansion[commandId]));
+    }
+}
+
+function getFileKey(file) {
+    return encodeURIComponent(file?.path || '');
+}
+
+function getFileSnippet(file) {
+    const preview = textOrFallback(file?.preview);
+    if (preview) {
+        return clipText(preview.replace(/\s+/g, ' '), 180);
+    }
+
+    const category = textOrFallback(file?.category, 'arquivo');
+    const extension = textOrFallback(file?.extension || 'sem extensão');
+    return `Arquivo da categoria ${category} (${extension}). Expanda para ver mais ou abra no drawer.`;
+}
+
+function syncFileExpansionState(files) {
+    const current = globalState.fileExpansion || {};
+    const next = {};
+
+    (Array.isArray(files) ? files : []).forEach(file => {
+        const key = getFileKey(file);
+        if (current[key]) {
+            next[key] = true;
+        }
+    });
+
+    globalState.fileExpansion = next;
+}
+
+function toggleFileExpand(encodedPath) {
+    globalState.fileExpansion = {
+        ...(globalState.fileExpansion || {}),
+        [encodedPath]: !globalState.fileExpansion?.[encodedPath]
+    };
+
+    const item = document.querySelector(`.file-item[data-file-key="${encodedPath}"]`);
+    if (item) {
+        item.classList.toggle('expanded', Boolean(globalState.fileExpansion[encodedPath]));
+    }
+}
+
+function getLogEntryKey(entry, index) {
+    return `${textOrFallback(entry?.timestamp, 'sem-data')}::${textOrFallback(entry?.agent, 'system')}::${index}`;
+}
+
+function getLogStatusBadgeClass(status) {
+    if (status === 'success') return 'badge badge-state-active';
+    if (status === 'warning' || status === 'error') return 'badge badge-health-risky';
+    return 'badge badge-health-steady';
+}
+
+function getLogSnippet(entry) {
+    const detail = textOrFallback(entry?.details || entry?.message || entry?.summary);
+    return clipText(detail || 'Clique na seta para ver mais contexto deste evento.', 180);
+}
+
+function syncLogExpansionState(entries) {
+    const current = globalState.logExpansion || {};
+    const next = {};
+
+    (Array.isArray(entries) ? entries : []).forEach((entry, index) => {
+        const key = encodeURIComponent(getLogEntryKey(entry, index));
+        if (current[key]) {
+            next[key] = true;
+        }
+    });
+
+    globalState.logExpansion = next;
+}
+
+function toggleLogExpand(encodedKey) {
+    globalState.logExpansion = {
+        ...(globalState.logExpansion || {}),
+        [encodedKey]: !globalState.logExpansion?.[encodedKey]
+    };
+
+    const item = document.querySelector(`.log-card[data-log-key="${encodedKey}"]`);
+    if (item) {
+        item.classList.toggle('expanded', Boolean(globalState.logExpansion[encodedKey]));
+    }
 }
 
 async function init() {
@@ -1370,27 +2226,55 @@ function renderActiveProject() {
         `).join('')
         : '<div style="font-size:0.84rem; color:var(--text-muted); line-height:1.45;">O resumo estruturado dos logs ainda não tem entradas suficientes para virar leitura automatizada.</div>';
 
-    const projectTimelineHTML = projectLogs.slice(0, 6).map(entry => `
-        <div class="timeline-item">
-            <div class="time">${entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString() : '--'}</div>
-            <div class="msg"><span class="agent-badge bdg-${(entry.agent || 'system').trim().toLowerCase()}">${(entry.agent || 'system').toUpperCase()}</span> ${entry.summary || entry.message || 'Sem resumo'}</div>
-        </div>
-    `).join('');
-    const globalTimelineHTML = globalActivity.slice(0, 6).map(entry => `
-        <div class="timeline-item" style="opacity:0.92;">
-            <div class="time">${entry.timestamp && entry.timestamp !== 'Telegram' ? new Date(entry.timestamp).toLocaleTimeString() : entry.timestamp || '--'}</div>
-            <div class="msg"><span class="agent-badge bdg-${(entry.agent || 'system').trim().toLowerCase()}">${(entry.agent || 'system').toUpperCase()}</span> ${entry.message || 'Sem detalhe'}</div>
-        </div>
-    `).join('');
-    const timelineSections = [
-        projectTimelineHTML
-            ? `<div style="font-size:0.78rem; color:var(--secondary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.5rem;">Projeto ativo</div>${projectTimelineHTML}`
-            : `<div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:1rem;">Nenhum log recente dentro do projeto ativo.</div>`,
-        globalTimelineHTML
-            ? `<div style="font-size:0.78rem; color:var(--primary); text-transform:uppercase; letter-spacing:0.08em; margin:1rem 0 0.5rem;">Atividade global do Nexus</div>${globalTimelineHTML}`
-            : '',
-    ].filter(Boolean).join('');
-    document.getElementById('projectTimeline').innerHTML = timelineSections || '<div style="color:var(--text-muted);font-size:0.85rem;">Nenhuma atividade recente.</div>';
+    const timelineEntries = [
+        ...projectLogs.slice(0, 6).map(entry => ({ ...entry, __scope: 'Projeto ativo' })),
+        ...globalActivity.slice(0, 6).map(entry => ({
+            agent: entry.agent || 'system',
+            status: 'info',
+            timestamp: entry.timestamp,
+            summary: entry.message || 'Sem detalhe',
+            details: entry.message || 'Sem detalhe',
+            __scope: 'Atividade global do Nexus'
+        }))
+    ];
+    syncLogExpansionState(timelineEntries);
+    document.getElementById('projectTimeline').innerHTML = timelineEntries.map((entry, index) => {
+        const key = getLogEntryKey(entry, index);
+        const encodedKey = encodeURIComponent(key);
+        const expanded = Boolean(globalState.logExpansion?.[key]);
+        const agent = textOrFallback(entry.agent, 'system').toLowerCase();
+        const subtitle = `${textOrFallback(entry.__scope, 'Projeto')} • ${textOrFallback(entry.timestamp && entry.timestamp !== 'Telegram' ? new Date(entry.timestamp).toLocaleString() : entry.timestamp, '--')}`;
+        const summary = textOrFallback(entry.summary || entry.message, 'Sem resumo');
+        const detail = textOrFallback(entry.details || entry.message || entry.summary, summary);
+        return `
+            <div class="log-card${expanded ? ' expanded' : ''}" data-log-key="${encodedKey}">
+                <button type="button" class="log-card-header" onclick="toggleLogExpand('${encodedKey}')">
+                    <div class="log-card-main">
+                        <span class="log-chevron">▶</span>
+                        <div class="log-card-summary">
+                            <div class="log-title-row">
+                                <span class="agent-badge bdg-${agent}">${safeHtml(textOrFallback(entry.agent, 'system').toUpperCase())}</span>
+                                <span class="log-title">${safeHtml(summary)}</span>
+                            </div>
+                            <div class="log-subtitle">${safeHtml(subtitle)}</div>
+                            <div class="log-snippet">${safeHtml(getLogSnippet(entry))}</div>
+                        </div>
+                    </div>
+                    <div class="log-card-actions">
+                        <span class="${getLogStatusBadgeClass(entry.status)}">${safeHtml(textOrFallback(entry.status, 'info'))}</span>
+                    </div>
+                </button>
+                <div class="log-card-details">
+                    <div class="log-detail-meta">
+                        <span>${safeHtml(textOrFallback(entry.__scope, 'Projeto'))}</span>
+                        <span>${safeHtml(textOrFallback(entry.timestamp && entry.timestamp !== 'Telegram' ? new Date(entry.timestamp).toLocaleString() : entry.timestamp, '--'))}</span>
+                        <span>${safeHtml(textOrFallback(entry.agent, 'system'))}</span>
+                    </div>
+                    <div class="log-detail-text">${safeHtml(detail)}</div>
+                </div>
+            </div>
+        `;
+    }).join('') || '<div style="color:var(--text-muted);font-size:0.85rem;">Nenhuma atividade recente.</div>';
 
     // Commands List
     const cmds = snap.commands || [];
@@ -1404,7 +2288,10 @@ function renderActiveProject() {
         </div>
     `).join('') || '<div style="color:var(--text-muted); font-size:0.85rem;">Lista vazia.</div>';
 
+    renderCommandsList(cmds);
     renderFilesPanel(snap);
+    renderFilesRail(snap);
+    renderProjectRadar(snap);
 
     // Render Project Summary
     renderProjectSummary(snap);
@@ -1687,6 +2574,111 @@ function renderFilesPanel(snap) {
             ${file.preview ? `<div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; padding: 0.5rem; background: rgba(0,0,0,0.4); border-radius: 4px; border-left: 2px solid ${file.isKeyFile ? 'var(--secondary)' : '#555'}; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${safeHtml(file.preview)}</div>` : ''}
         </div>
     `).join('') || '<div style="color: var(--text-muted); font-size: 0.85rem; padding: 1rem; text-align: center; border: 1px dashed var(--border); border-radius: 8px;">Nenhum detalhamento individual retornado.</div>';
+}
+
+function renderFilesRail(snap) {
+    const files = snap?.files;
+    const list = document.getElementById('filesList');
+    const workspaceTitle = document.querySelector('.workspace-rail-panel h2');
+
+    if (workspaceTitle) {
+        workspaceTitle.innerHTML = '<span aria-hidden="true">&#128193;</span> Mapa do Workspace';
+    }
+
+    if (!files || !list) {
+        return;
+    }
+
+    const entries = Array.isArray(files.entries) ? files.entries.slice(0, 10) : [];
+    syncFileExpansionState(entries);
+
+    if (!entries.length) {
+        list.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; padding: 1rem; text-align: center; border: 1px dashed var(--border); border-radius: 8px;">Nenhum detalhamento individual retornado.</div>';
+        return;
+    }
+
+    list.innerHTML = entries.map(file => {
+        const encodedPath = getFileKey(file);
+        const expanded = Boolean(globalState.fileExpansion?.[encodedPath]);
+        const preview = textOrFallback(file.preview);
+
+        return `
+            <div class="file-item${expanded ? ' expanded' : ''}" data-file-key="${encodedPath}">
+                <button type="button" class="file-header" onclick="toggleFileExpand('${encodedPath}')">
+                    <div class="file-main">
+                        <span class="file-chevron">▶</span>
+                        <div class="file-summary">
+                            <div class="file-path" style="color:${file.isKeyFile ? 'var(--secondary)' : 'var(--text)'};">${safeHtml(file.path)}</div>
+                            <div class="file-snippet">${safeHtml(getFileSnippet(file))}</div>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <span class="badge" style="background:var(--bg); border:1px solid var(--border); color:var(--text-muted); font-size: 0.6rem;">${safeHtml(textOrFallback(file.category, 'arquivo').toUpperCase())}</span>
+                        ${file.isKeyFile ? `<span class="badge" style="background:rgba(6, 182, 212, 0.12); color:var(--secondary); border:1px solid rgba(6, 182, 212, 0.3); font-size: 0.6rem;">KEY</span>` : `<span class="badge" style="background:rgba(255,255,255,0.04); color:var(--text-muted); border:1px solid var(--border); font-size: 0.6rem;">${safeHtml(textOrFallback(file.extension ? file.extension.toUpperCase() : 'DOC'))}</span>`}
+                    </div>
+                </button>
+                <div class="file-details">
+                    <div class="file-preview">${preview ? safeHtml(preview) : 'Sem preview textual disponível para este arquivo.'}</div>
+                    <div class="file-detail-footer">
+                        <button type="button" class="file-open-btn" onclick="openFilePreview('${encodedPath}')">Abrir preview completo</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderProjectRadar(snap) {
+    const copy = document.getElementById('radarCopy');
+    const checklist = document.getElementById('radarChecklist');
+    const stats = document.getElementById('radarStats');
+    const badge = document.getElementById('radarStateBadge');
+
+    if (!copy || !checklist || !stats || !badge || !snap?.project) {
+        return;
+    }
+
+    const tasks = Array.isArray(snap.tasks) ? snap.tasks.filter(item => item.status !== 'completed') : [];
+    const milestones = Array.isArray(snap.milestones) ? snap.milestones.filter(item => item.status !== 'completed') : [];
+    const logs = Array.isArray(snap.logs) ? snap.logs : [];
+    const narratorMessages = Array.isArray(snap.narrator?.messages)
+        ? snap.narrator.messages.map(item => typeof item === 'string' ? item : item?.text).filter(Boolean)
+        : [];
+    const summaryText = textOrFallback(narratorMessages[0] || snap.summary?.text || snap.project.description);
+    const nextFocus = textOrFallback(snap.dashboard?.status?.nextFocus, 'Sem foco imediato mapeado.');
+    const overallPct = Number(snap.dashboard?.progress?.overallPct || 0);
+    const queue = snap.dashboard?.queue || {};
+    const agendaCounts = snap.dashboard?.agendaCounts || {};
+    const recentWarnings = logs.filter(entry => entry.status === 'warning' || entry.status === 'error').length;
+
+    copy.textContent = `${summaryText} Próximo foco: ${nextFocus}`;
+
+    const checkpoints = [
+        ...tasks.slice(0, 2).map(task => `Tarefa: ${textOrFallback(task.title, 'Sem título')}`),
+        ...milestones.slice(0, 1).map(item => `Marco: ${textOrFallback(item.title, 'Sem título')}`),
+    ].slice(0, 3);
+
+    checklist.innerHTML = checkpoints.length
+        ? checkpoints.map(item => `<div class="radar-list-item">${safeHtml(item)}</div>`).join('')
+        : '<div class="radar-list-item">Nenhum checkpoint aberto agora. O painel está surpreendentemente em ordem.</div>';
+
+    const radarStats = [
+        { label: 'Progresso geral', value: `${overallPct}%` },
+        { label: 'Tarefas abertas', value: String(tasks.length) },
+        { label: 'Aguardando agente', value: String(queue.awaitingExternal || 0) },
+        { label: 'Alertas recentes', value: String(recentWarnings || agendaCounts.overdue || 0) },
+    ];
+
+    stats.innerHTML = radarStats.map(item => `
+        <div class="radar-stat">
+            <div class="radar-stat-label">${safeHtml(item.label)}</div>
+            <div class="radar-stat-value">${safeHtml(item.value)}</div>
+        </div>
+    `).join('');
+
+    const health = textOrFallback(snap.dashboard?.status?.health, 'steady');
+    badge.textContent = health.toUpperCase();
+    badge.className = `badge ${health === 'attention' ? 'badge-health-risky' : 'badge-health-steady'}`;
 }
 
 async function dispatchCommand(e) {
