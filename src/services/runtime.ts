@@ -3,6 +3,8 @@ import { CommandRecord, CommandRequest } from "../core/types";
 import { NexusProjectsService } from "../projects/service";
 import {
   NexusProjectLog,
+  NexusUiPreferences,
+  NexusUiThemePreset,
   ProjectAgendaOperationalSnapshot,
   ProjectDigestSnapshot,
   ProjectGitSnapshot,
@@ -34,6 +36,7 @@ import { ProjectSearchService } from "./projectSearch";
 import { ProjectSummaryService } from "./projectSummary";
 import { ProjectValidationService } from "./projectValidation";
 import { NexusAuditService } from "./systemAudit";
+import { NexusUiPreferencesService } from "./uiPreferences";
 import { WorkerService } from "./worker";
 
 export class IntegrationRuntime {
@@ -46,6 +49,7 @@ export class IntegrationRuntime {
   readonly projectValidation = new ProjectValidationService();
   readonly intelligence = new ProjectIntelligenceService();
   readonly search = new ProjectSearchService();
+  readonly uiPreferences = new NexusUiPreferencesService();
   readonly antigravityMonitor = new AntigravitySessionMonitor(this.logger, this.projects);
   readonly summaries = new ProjectSummaryService();
   readonly audit = new NexusAuditService(this.queue, this.projects);
@@ -213,6 +217,8 @@ export class IntegrationRuntime {
       activity: this.logger.readRecentEntries(20),
       projectActivity: activeProject?.logs ?? [],
       antigravitySession: this.antigravityMonitor.getSnapshot(activeProjectId),
+      preferences: this.getUiPreferences(),
+      themePresets: this.listUiThemePresets(),
       manualAssist: {
         codex: [],
         antigravity:
@@ -510,6 +516,21 @@ export class IntegrationRuntime {
 
   async ensureProjectSummaryAudio(projectId: string) {
     return this.summaries.ensureNarration(this.buildProjectSummarySource(projectId));
+  }
+
+  getUiPreferences(): NexusUiPreferences {
+    return this.uiPreferences.getPreferences();
+  }
+
+  updateUiPreferences(input: Partial<NexusUiPreferences>) {
+    return this.uiPreferences.updatePreferences({
+      themePreset: input.themePreset,
+      panelMode: input.panelMode,
+    });
+  }
+
+  listUiThemePresets(): NexusUiThemePreset[] {
+    return this.uiPreferences.listThemePresets();
   }
 
   setProjectSummaryPlaybackStatus(projectId: string, status: ProjectSummaryAudioStatus) {

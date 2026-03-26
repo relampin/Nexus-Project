@@ -49,9 +49,9 @@ function getRestrictionLines(monitor: ExternalDispatch["monitor"] | undefined, p
   ];
 
   if (monitor?.enabled) {
-    lines.push(`- Trabalhe apenas dentro de: ${monitor.allowedPaths.join(", ")}.`);
+    lines.push(`- Priorize mudancas em: ${monitor.allowedPaths.join(", ")}.`);
     lines.push(`- Nao mexa em: ${monitor.blockedPaths.join(", ")}.`);
-    lines.push("- O Nexus esta monitorando os arquivos alterados e pode reprovar a entrega se voce sair do escopo.");
+    lines.push("- O Nexus monitora os arquivos alterados. Ajustes pequenos de apoio fora da area principal podem gerar ressalva, mas so areas protegidas bloqueiam a entrega.");
   }
 
   lines.push(`- Considere ${getProjectRootLabel(projectRoot)} como a raiz oficial deste trabalho.`);
@@ -89,8 +89,8 @@ export function buildAntigravityRequestBody(
     `A raiz correta deste job e ${getProjectRootLabel(projectRoot)}.`,
     "Trate essa pasta como o alvo oficial da entrega.",
     ...(monitor?.enabled ? [
-      `Nesta rodada, o escopo permitido ficou em: ${monitor.allowedPaths.join(", ")}.`,
-      `As areas bloqueadas sao: ${monitor.blockedPaths.join(", ")}.`,
+      `Nesta rodada, concentre o trabalho em: ${monitor.allowedPaths.join(", ")}.`,
+      `As areas protegidas sao: ${monitor.blockedPaths.join(", ")}.`,
     ] : []),
     "",
     "## Tarefa",
@@ -140,7 +140,7 @@ export function buildAntigravityTelegramMessage(command: CommandRecord) {
     "",
     `Trabalhe na pasta ${getProjectRootLabel(projectRoot)}.`,
     ...(command.external?.monitor?.enabled ? [
-      `O escopo permitido nesta tarefa e: ${command.external.monitor.allowedPaths.join(", ")}.`,
+      `A area principal desta tarefa e: ${command.external.monitor.allowedPaths.join(", ")}.`,
       `Nao mexa em: ${command.external.monitor.blockedPaths.join(", ")}.`,
     ] : []),
     "",
@@ -175,9 +175,9 @@ export function buildAntigravityIdePrompt(command: CommandRecord) {
     "",
     `Trabalhe na pasta ${getProjectRootLabel(projectRoot)}.`,
     ...(command.external?.monitor?.enabled ? [
-      `O escopo permitido para esta tarefa e: ${command.external.monitor.allowedPaths.join(", ")}.`,
+      `A area principal desta tarefa e: ${command.external.monitor.allowedPaths.join(", ")}.`,
       `Nao mexa em: ${command.external.monitor.blockedPaths.join(", ")}.`,
-      "O Nexus monitora os arquivos alterados automaticamente.",
+      "O Nexus monitora os arquivos alterados automaticamente, mas so areas protegidas bloqueiam a entrega.",
     ] : []),
     "",
     "## Tarefa",

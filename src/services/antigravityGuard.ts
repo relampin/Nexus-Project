@@ -18,6 +18,8 @@ interface SnapshotFile {
 export interface AntigravityGuardrailInspection {
   changedFiles: string[];
   violatingFiles: string[];
+  warningFiles: string[];
+  ignoredFiles: string[];
   missingLogSections: string[];
 }
 
@@ -29,6 +31,8 @@ export interface AntigravityReviewReport {
   declaredChangedFiles: string[];
   undeclaredChangedFiles: string[];
   violatingFiles: string[];
+  warningFiles: string[];
+  ignoredFiles: string[];
   missingLogSections: string[];
   warnings: string[];
   passedChecks: string[];
@@ -57,6 +61,7 @@ const requiredLogSections = [
   "o que deleguei",
   "o que falta validar",
 ];
+const advisoryArtifactPattern = /(^|\/)(diff|changes|notes|scratch|todo|observacoes|resumo)\.(txt|md|diff)$/i;
 
 export function createAntigravityMonitor(command: CommandRecord, jobDirectory: string, projectRoot: string): ExternalDispatch["monitor"] {
   const payloadGuardrails = readGuardrailPayload(command.payload.guardrails);
@@ -92,14 +97,19 @@ export function inspectAntigravityGuardrails(command: CommandRecord, rawLog?: st
   }
 
   const changedFiles = readChangedFiles(monitor.baselineFile);
-  const violatingFiles = changedFiles.filter((filePath) =>
-    matchesAnyRule(filePath, monitor.blockedPaths)
-    || !matchesAnyRule(filePath, monitor.allowedPaths));
+  const ignoredFiles = changedFiles.filter((filePath) => isAdvisoryArtifact(filePath));
+  const relevantFiles = changedFiles.filter((filePath) => !ignoredFiles.includes(filePath));
+  const violatingFiles = relevantFiles.filter((filePath) => matchesAnyRule(filePath, monitor.blockedPaths));
+  const warningFiles = relevantFiles.filter((filePath) =>
+    !matchesAnyRule(filePath, monitor.blockedPaths)
+    && !matchesAnyRule(filePath, monitor.allowedPaths));
   const missingLogSections = rawLog ? validateAntigravityLog(rawLog) : [];
 
   return {
     changedFiles,
     violatingFiles,
+    warningFiles,
+    ignoredFiles,
     missingLogSections,
   };
 }
@@ -112,9 +122,9 @@ export function buildGuardrailAlertPrompt(command: CommandRecord, violatingFiles
 
   return [
     `Pausa no job ${command.id}.`,
-    "O Nexus detectou alteracoes fora do escopo permitido.",
+    "O Nexus detectou alteracoes em areas protegidas do projeto.",
     `Arquivos suspeitos: ${violatingFiles.slice(0, 10).join(", ")}`,
-    `Escopo permitido: ${allowedPaths}.`,
+    `Area principal desta tarefa: ${allowedPaths}.`,
     "Nao mexa em backend, dados, configs ou contratos sem autorizacao.",
     `Revise o requestFile ${requestFile}.`,
     `Corrija o escopo e finalize pelo log em ${logFile}.`,
@@ -130,6 +140,8 @@ export function createAntigravityReviewReport(command: CommandRecord, rawLog: st
   const inspection = inspectAntigravityGuardrails(command, rawLog) ?? {
     changedFiles: [],
     violatingFiles: [],
+    warningFiles: [],
+    ignoredFiles: [],
     missingLogSections: [],
   };
   const projectRoot = command.external?.monitor?.projectRoot ?? command.external?.projectRoot ?? process.cwd();
@@ -141,7 +153,9 @@ export function createAntigravityReviewReport(command: CommandRecord, rawLog: st
     toProjectRelativePath(command.external?.monitor?.baselineFile, projectRoot),
     toProjectRelativePath(command.external?.reviewFile ?? command.external?.monitor?.reviewFile, projectRoot),
   ].filter((item): item is string => Boolean(item)));
-  const projectChangedFiles = inspection.changedFiles.filter((filePath) => !ignoredFiles.includes(filePath));
+  const projectChangedFiles = inspection.changedFiles.filter((filePath) =>
+    !ignoredFiles.includes(filePath)
+    && !inspection.ignoredFiles.includes(filePath));
   const undeclaredChangedFiles = projectChangedFiles.filter((filePath) => !matchesDeclaration(filePath, declaredChangedFiles));
   const warnings: string[] = [];
   const passedChecks: string[] = [];
@@ -151,7 +165,7 @@ export function createAntigravityReviewReport(command: CommandRecord, rawLog: st
   }
 
   if (inspection.violatingFiles.length === 0) {
-    passedChecks.push("alteracoes dentro do escopo permitido");
+    passedChecks.push("nenhuma alteracao bloqueante em area protegida");
   }
 
   if (projectChangedFiles.length > 0) {
@@ -164,6 +178,10 @@ export function createAntigravityReviewReport(command: CommandRecord, rawLog: st
     warnings.push(`arquivos alterados nao listados no log: ${undeclaredChangedFiles.join(", ")}`);
   } else if (projectChangedFiles.length > 0) {
     passedChecks.push("arquivos alterados descritos no log");
+  }
+
+  if (inspection.warningFiles.length > 0) {
+    warnings.push(`mudancas fora da area principal, mas nao bloqueantes: ${inspection.warningFiles.join(", ")}`);
   }
 
   if (!hasValidationEvidence(rawLog)) {
@@ -188,6 +206,8 @@ export function createAntigravityReviewReport(command: CommandRecord, rawLog: st
     declaredChangedFiles,
     undeclaredChangedFiles,
     violatingFiles: inspection.violatingFiles,
+    warningFiles: inspection.warningFiles,
+    ignoredFiles: inspection.ignoredFiles,
     missingLogSections: inspection.missingLogSections,
     warnings,
     passedChecks,
@@ -293,6 +313,10 @@ function normalizePaths(paths: string[]) {
   return [...new Set(paths.map((path) => normalizeRelativePath(path)).filter(Boolean))];
 }
 
+function isAdvisoryArtifact(filePath: string) {
+  return advisoryArtifactPattern.test(filePath);
+}
+
 function matchesAnyRule(filePath: string, rules: string[]) {
   if (rules.length === 0) {
     return true;
@@ -385,7 +409,7 @@ function buildReviewSummary(
 ) {
   if (status === "failed") {
     if (inspection.violatingFiles.length > 0) {
-      return `review falhou; Antigravity saiu do escopo em ${inspection.violatingFiles.length} arquivo(s)`;
+      return `review falhou; Antigravity tocou ${inspection.violatingFiles.length} arquivo(s) em area protegida`;
     }
 
     return `review falhou; faltaram secoes obrigatorias no log do Antigravity`;

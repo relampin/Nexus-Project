@@ -9,6 +9,8 @@ export type ProjectSummaryAudioStatus = "idle" | "generating" | "ready" | "playi
 export type ProjectPersonalityMode = "neutral" | "sarcastic";
 export type ProjectPersonalityIntensity = "low" | "medium" | "high";
 export type ProjectProfileId = "general" | "web_app" | "backend_service" | "automation" | "site" | "ai_hub";
+export type UiThemePresetId = "nexus" | "ocean" | "ember" | "forest" | "graphite";
+export type UiPanelMode = "full" | "simplified";
 
 export interface NexusProject {
   id: string;
@@ -39,6 +41,27 @@ export interface ProjectProfileDefinition {
   label: string;
   description: string;
   focusAreas: string[];
+}
+
+export interface NexusUiThemePreset {
+  id: UiThemePresetId;
+  label: string;
+  description: string;
+  colors: {
+    bg: string;
+    surface: string;
+    surfaceHover: string;
+    primary: string;
+    secondary: string;
+    primaryGlow: string;
+    secondaryGlow: string;
+  };
+}
+
+export interface NexusUiPreferences {
+  themePreset: UiThemePresetId;
+  panelMode: UiPanelMode;
+  updatedAt: string;
 }
 
 export interface NexusTask {

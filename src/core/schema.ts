@@ -2,6 +2,8 @@ import { z } from "zod";
 
 const agentNameSchema = z.enum(["antigravity", "codex", "system"]);
 const commandKindSchema = z.enum(["ping", "note", "task", "list_pending", "status_summary"]);
+const uiThemePresetSchema = z.enum(["nexus", "ocean", "ember", "forest", "graphite"]);
+const uiPanelModeSchema = z.enum(["full", "simplified"]);
 
 export const commandRequestSchema = z.object({
   source: agentNameSchema,
@@ -35,4 +37,11 @@ export const uiDispatchSchema = z.object({
   payload: z.object({
     text: z.string().min(1),
   }).optional(),
+});
+
+export const updateUiPreferencesSchema = z.object({
+  themePreset: uiThemePresetSchema.optional(),
+  panelMode: uiPanelModeSchema.optional(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: "Informe ao menos uma preferencia para atualizar.",
 });

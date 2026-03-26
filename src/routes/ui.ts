@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { Router } from "express";
 import { resolveNexusPath } from "../core/paths";
-import { uiDispatchSchema } from "../core/schema";
+import { uiDispatchSchema, updateUiPreferencesSchema } from "../core/schema";
 import { IntegrationRuntime } from "../services/runtime";
 
 function readBootstrapKitItem(id: string, title: string, relativePath: string, kind: "doc" | "prompt") {
@@ -24,6 +24,26 @@ export function createUiRouter(runtime: IntegrationRuntime) {
 
   router.get("/bootstrap", (_req, res) => {
     res.json(runtime.getUiSnapshot());
+  });
+
+  router.get("/preferences", (_req, res) => {
+    res.json({
+      preferences: runtime.getUiPreferences(),
+      themePresets: runtime.listUiThemePresets(),
+    });
+  });
+
+  router.patch("/preferences", (req, res, next) => {
+    try {
+      const parsed = updateUiPreferencesSchema.parse(req.body);
+      const preferences = runtime.updateUiPreferences(parsed);
+      res.json({
+        preferences,
+        themePresets: runtime.listUiThemePresets(),
+      });
+    } catch (error) {
+      next(error);
+    }
   });
 
   router.get("/commands", (req, res) => {
