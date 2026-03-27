@@ -1166,6 +1166,269 @@ function renderProjectRadar(snap) {
         : '<div class="empty-state">Sem acoes recomendadas pelo radar agora.</div>';
 }
 
+function focusDashboardSection(sectionId) {
+    const target = document.getElementById(sectionId);
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+}
+
+function setPulseRingMetrics(node, radius, value) {
+    if (!node) return;
+    const clamped = Math.max(0, Math.min(100, Number(value || 0)));
+    const circumference = 2 * Math.PI * radius;
+    node.style.strokeDasharray = String(circumference);
+    node.style.strokeDashoffset = String(circumference * (1 - (clamped / 100)));
+}
+
+function renderProjectPulsePanel(snap) {
+    const panel = document.getElementById('projectPulsePanel');
+    const subtitle = document.getElementById('pulseSubtitle');
+    const healthBadge = document.getElementById('pulseHealthBadge');
+    const overallLabel = document.getElementById('pulseOverallLabel');
+    const primarySignal = document.getElementById('pulsePrimarySignal');
+    const stageHeadline = document.getElementById('pulseStageHeadline');
+    const stageSummary = document.getElementById('pulseStageSummary');
+    const stageInsights = document.getElementById('pulseStageInsights');
+    const flowMap = document.getElementById('pulseFlowMap');
+    const legend = document.getElementById('pulseLegend');
+    const pressureBars = document.getElementById('pulsePressureBars');
+    const signals = document.getElementById('pulseSignals');
+    const trajectory = document.getElementById('pulseTrajectory');
+    const overallRing = document.getElementById('pulseOverallRing');
+    const taskRing = document.getElementById('pulseTaskRing');
+    const milestoneRing = document.getElementById('pulseMilestoneRing');
+    const commandRing = document.getElementById('pulseCommandRing');
+    if (!panel || !subtitle || !healthBadge || !overallLabel || !primarySignal || !stageHeadline || !stageSummary || !stageInsights || !flowMap || !legend || !pressureBars || !signals || !trajectory) {
+        return;
+    }
+
+    const progress = snap.dashboard?.progress || {};
+    const queue = snap.dashboard?.queue || {};
+    const agendaCounts = snap.dashboard?.agendaCounts || {};
+    const tasks = toArray(snap.tasks);
+    const milestones = toArray(snap.milestones);
+    const logs = toArray(snap.logs);
+    const commands = toArray(snap.commands);
+    const immediate = toArray(snap.agendaOperational?.immediate);
+    const completedTasks = tasks.filter((item) => item.status === 'completed').length;
+    const openTasks = tasks.filter((item) => item.status !== 'completed').length;
+    const inProgressTasks = tasks.filter((item) => item.status === 'in_progress').length;
+    const completedMilestones = milestones.filter((item) => item.status === 'completed').length;
+    const openMilestones = milestones.filter((item) => item.status !== 'completed').length;
+    const warningCount = logs.filter((item) => item.status === 'warning').length;
+    const errorCount = logs.filter((item) => item.status === 'error').length;
+    const successCount = logs.filter((item) => item.status === 'success').length;
+    const activeCommands = commands.filter((item) => ['pending', 'processing', 'awaiting_external'].includes(item.status)).length;
+    const health = textOrFallback(snap.dashboard?.status?.health, 'steady');
+    const headline = textOrFallback(
+        snap.radar?.headline,
+        snap.radar?.nextDelivery || snap.dashboard?.status?.nextFocus || immediate[0]?.title,
+        'Sem fluxo principal mapeado'
+    );
+    const subtitleCopy = queue.awaitingExternal || queue.processing
+        ? `Ha ${queue.awaitingExternal || 0} job(s) aguardando agente e ${queue.processing || 0} em processamento.`
+        : warningCount || errorCount || agendaCounts.overdue
+            ? `Sem fila travada, mas o projeto ainda carrega ${warningCount + errorCount + (agendaCounts.overdue || 0)} sinal(is) de atencao.`
+            : 'Painel sem fila travada agora. O pulso esta priorizando ritmo, entrega e sinais do projeto.';
+
+    panel.dataset.health = health;
+    subtitle.textContent = subtitleCopy;
+    overallLabel.textContent = `${Number(progress.overallPct || 0)}%`;
+    const trimmedSignal = headline.length > 28 ? headline.slice(0, 28) + '…' : headline;
+    primarySignal.textContent = trimmedSignal;
+    stageHeadline.textContent = snap.radar?.nextDelivery || snap.dashboard?.status?.nextFocus || 'Sem foco operacional dominante';
+    stageSummary.textContent = snap.radar?.nextDelivery
+        ? `Proxima entrega sugerida: ${snap.radar.nextDelivery}.`
+        : subtitleCopy;
+    healthBadge.textContent = String(health).toUpperCase();
+    healthBadge.className = `badge ${health === 'attention' ? 'badge-health-risky' : 'badge-health-steady'}`;
+
+    setPulseRingMetrics(overallRing, 92, progress.overallPct || 0);
+    setPulseRingMetrics(taskRing, 72, progress.tasksPct || 0);
+    setPulseRingMetrics(milestoneRing, 52, progress.milestonesPct || 0);
+    setPulseRingMetrics(commandRing, 32, progress.commandsPct || 0);
+
+    const legendItems = [
+        { label: 'Geral', value: `${Number(progress.overallPct || 0)}%`, tone: 'var(--secondary)' },
+        { label: 'Tarefas', value: `${Number(progress.tasksPct || 0)}%`, tone: 'var(--success)' },
+        { label: 'Marcos', value: `${Number(progress.milestonesPct || 0)}%`, tone: 'var(--warning)' },
+        { label: 'Comandos', value: `${Number(progress.commandsPct || 0)}%`, tone: 'var(--primary)' }
+    ];
+    legend.innerHTML = legendItems.map((item) => `
+        <div class="pulse-legend-item">
+            <span class="pulse-legend-dot" style="background:${item.tone}; box-shadow:0 0 18px ${item.tone};"></span>
+            <div>
+                <div class="pulse-legend-label">${safeHtml(item.label)}</div>
+                <div class="pulse-legend-value">${safeHtml(item.value)}</div>
+            </div>
+        </div>
+    `).join('');
+
+    const pressureItems = [
+        {
+            label: 'Backlog aberto',
+            value: openTasks,
+            total: Math.max(tasks.length, 1),
+            hint: `${inProgressTasks} em andamento`,
+            tone: 'var(--secondary)'
+        },
+        {
+            label: 'Fila de execucao',
+            value: (queue.awaitingExternal || 0) + (queue.processing || 0),
+            total: Math.max((queue.awaitingExternal || 0) + (queue.processing || 0) + (queue.failed || 0) + 1, 1),
+            hint: `${queue.failed || 0} falha(s) recente(s)`,
+            tone: 'var(--warning)'
+        },
+        {
+            label: 'Alertas',
+            value: warningCount + errorCount + (agendaCounts.overdue || 0),
+            total: Math.max(logs.length + (agendaCounts.overdue || 0), 1),
+            hint: `${warningCount} warning, ${errorCount} error`,
+            tone: 'var(--danger)'
+        },
+        {
+            label: 'Entrega consolidada',
+            value: completedTasks + completedMilestones,
+            total: Math.max(tasks.length + milestones.length, 1),
+            hint: `${completedTasks} tarefa(s), ${completedMilestones} marco(s)`,
+            tone: 'var(--success)'
+        }
+    ];
+
+    pressureBars.innerHTML = pressureItems.map((item) => {
+        const pct = Math.max(10, Math.min(100, Math.round((Number(item.value || 0) / Number(item.total || 1)) * 100)));
+        return `
+            <div class="pulse-bar-row">
+                <div class="pulse-bar-meta">
+                    <div class="pulse-bar-label">${safeHtml(item.label)}</div>
+                    <div class="pulse-bar-value">${safeHtml(String(item.value))}</div>
+                </div>
+                <div class="pulse-bar-track">
+                    <div class="pulse-bar-fill" style="width:${pct}%; background:${item.tone}; box-shadow:0 0 16px ${item.tone};"></div>
+                </div>
+                <div class="pulse-bar-hint">${safeHtml(item.hint)}</div>
+            </div>
+        `;
+    }).join('');
+
+    const insightItems = [
+        {
+            label: 'Ritmo atual',
+            value: inProgressTasks ? `${inProgressTasks} em andamento` : `${completedTasks} concluidas`,
+            copy: inProgressTasks ? 'O projeto esta girando em tarefas ativas agora.' : 'Nao ha tarefa rodando, entao o ritmo depende da proxima entrega.'
+        },
+        {
+            label: 'Ponte com agentes',
+            value: queue.awaitingExternal || queue.processing ? `${(queue.awaitingExternal || 0) + (queue.processing || 0)} fluxo(s)` : 'Livre',
+            copy: queue.awaitingExternal || queue.processing ? 'Ainda ha fluxo passando por agente externo.' : 'Nenhum fluxo externo segurando o cockpit agora.'
+        },
+        {
+            label: 'Risco dominante',
+            value: warningCount + errorCount ? `${warningCount + errorCount} sinal(is)` : 'Controlado',
+            copy: snap.radar?.risk || snap.radar?.blocker || 'Sem risco dominante fora do radar neste momento.'
+        },
+        {
+            label: 'Entrega visivel',
+            value: completedTasks + completedMilestones ? `${completedTasks + completedMilestones} item(ns)` : 'Em preparo',
+            copy: completedTasks + completedMilestones
+                ? 'Ha entrega acumulada suficiente para mostrar tracao real.'
+                : 'Ainda faltam entregas fechadas para o painel mostrar mais tracao.'
+        }
+    ];
+    stageInsights.innerHTML = insightItems.map((item) => `
+        <div class="pulse-insight-card">
+            <div class="pulse-insight-label">${safeHtml(item.label)}</div>
+            <div class="pulse-insight-value">${safeHtml(item.value)}</div>
+            <div class="pulse-insight-copy">${safeHtml(item.copy)}</div>
+        </div>
+    `).join('');
+
+    const flowItems = [
+        {
+            label: 'Agenda',
+            state: immediate.length ? 'ready' : 'idle',
+            note: immediate[0]?.title || 'Sem proxima acao imediata.'
+        },
+        {
+            label: 'Execucao',
+            state: inProgressTasks || activeCommands ? 'ready' : 'idle',
+            note: inProgressTasks ? `${inProgressTasks} tarefa(s) em andamento.` : activeCommands ? `${activeCommands} comando(s) ainda correndo.` : 'Nada em execucao agora.'
+        },
+        {
+            label: 'Validacao',
+            state: errorCount || warningCount ? 'attention' : 'ready',
+            note: errorCount || warningCount ? `${warningCount} warning e ${errorCount} error no historico recente.` : 'Sem friccao recente na camada de validacao.'
+        },
+        {
+            label: 'Entrega',
+            state: completedTasks + completedMilestones ? 'ready' : 'idle',
+            note: completedTasks + completedMilestones ? `${completedTasks + completedMilestones} item(ns) ja consolidados.` : 'Ainda sem entrega forte no radar.'
+        }
+    ];
+    flowMap.innerHTML = flowItems.map((item, index) => `
+        <div class="pulse-flow-item pulse-flow-${item.state}">
+            <div class="pulse-flow-head">
+                <span class="pulse-flow-label">${safeHtml(item.label)}</span>
+                <span class="pulse-flow-state">${safeHtml(item.state.toUpperCase())}</span>
+            </div>
+            <div class="pulse-flow-note">${safeHtml(item.note)}</div>
+            ${index < flowItems.length - 1 ? '<div class="pulse-flow-link"></div>' : ''}
+        </div>
+    `).join('');
+
+    const signalCards = [
+        { label: 'Tarefas abertas', value: String(openTasks), tone: 'info' },
+        { label: 'Tarefas concluidas', value: String(completedTasks), tone: 'success' },
+        { label: 'Marcos em aberto', value: String(openMilestones), tone: 'warning' },
+        { label: 'Comandos ativos', value: String(activeCommands), tone: 'primary' },
+        { label: 'Logs com sucesso', value: String(successCount), tone: 'success' },
+        { label: 'Sinais de atencao', value: String(warningCount + errorCount), tone: warningCount + errorCount ? 'danger' : 'muted' }
+    ];
+    signals.innerHTML = signalCards.map((item) => `
+        <div class="pulse-signal-card pulse-signal-${safeHtml(item.tone)}">
+            <div class="pulse-signal-value">${safeHtml(item.value)}</div>
+            <div class="pulse-signal-label">${safeHtml(item.label)}</div>
+        </div>
+    `).join('');
+
+    const trajectoryItems = [
+        {
+            label: 'Agenda',
+            target: 'projectDirectionHero',
+            note: immediate[0]?.title || snap.dashboard?.status?.nextFocus || 'Sem foco operacional claro ainda.',
+            state: immediate.length ? 'ready' : 'idle'
+        },
+        {
+            label: 'Radar',
+            target: 'projectRadarPanel',
+            note: snap.radar?.risk || snap.radar?.blocker || 'Sem risco principal fora do radar agora.',
+            state: snap.radar?.risk || snap.radar?.blocker ? 'attention' : 'ready'
+        },
+        {
+            label: 'Resumo',
+            target: 'projectSummarySection',
+            note: snap.summary?.text ? 'Resumo narrativo carregado para leitura e audio.' : 'Resumo ainda sem corpo util.',
+            state: snap.summary?.text ? 'ready' : 'idle'
+        },
+        {
+            label: 'Logs',
+            target: 'logsRailPanel',
+            note: logs.length ? `${logs.length} log(s) mapeado(s) no projeto ativo.` : 'Ainda ha pouco historico local para leitura.',
+            state: logs.length ? 'ready' : 'idle'
+        }
+    ];
+
+    trajectory.innerHTML = trajectoryItems.map((item) => `
+        <button class="pulse-trajectory-item pulse-trajectory-${item.state}" type="button" onclick="focusDashboardSection('${String(item.target).replace(/'/g, '&#39;')}')">
+            <div class="pulse-trajectory-head">
+                <span class="pulse-trajectory-label">${safeHtml(item.label)}</span>
+                <span class="pulse-trajectory-state">${safeHtml(item.state.toUpperCase())}</span>
+            </div>
+            <div class="pulse-trajectory-note">${safeHtml(item.note)}</div>
+        </button>
+    `).join('');
+}
+
 function renderTaskBoardPanel(snap) {
     const list = document.getElementById('taskBoardList');
     if (!list) return;
@@ -1257,6 +1520,62 @@ function renderValidationPanel(snap) {
             <div style="font-size:0.8rem; color:var(--text-muted); line-height:1.45; margin-top:0.45rem;">${safeHtml(textOrFallback(step.summary, 'Sem resumo do passo.'))}</div>
         </div>
     `).join('') || '<div class="empty-state">Sem verificacoes ainda.</div>';
+}
+
+function renderExecutionBoardPanel(snap) {
+    const copy = document.getElementById('executionBoardCopy');
+    const metrics = document.getElementById('executionBoardMetrics');
+    const notes = document.getElementById('executionBoardNotes');
+    if (!copy || !metrics || !notes) return;
+
+    const queue = snap.dashboard?.queue || {};
+    const logs = toArray(snap.logs);
+    const settings = snap.settings || {};
+    const summary = snap.summary || {};
+    const audio = summary.audio || {};
+    const realtimeLabel = document.getElementById('connText')?.textContent || 'local';
+    const warningCount = logs.filter((item) => item.status === 'warning').length;
+    const errorCount = logs.filter((item) => item.status === 'error').length;
+    const activeCommands = (queue.awaitingExternal || 0) + (queue.processing || 0);
+    const linkedWorkspace = settings.projectRoot ? 'LINK' : 'SOLTO';
+    const channel = queue.awaitingExternal ? 'AGENTE' : audio.provider === 'elevenlabs' ? 'AUDIO' : 'LOCAL';
+
+    copy.textContent = activeCommands
+        ? `Ha ${activeCommands} fluxo(s) em curso e o painel esta acompanhando sinais recentes sem travar o projeto.`
+        : `Sem fluxo preso agora. O cockpit esta operando em ${realtimeLabel.toLowerCase()} com leitura ativa do projeto.`;
+
+    const metricItems = [
+        { label: 'Canal', value: channel },
+        { label: 'Fila', value: String(activeCommands) },
+        { label: 'Logs', value: String(logs.length) },
+        { label: 'Workspace', value: linkedWorkspace }
+    ];
+    metrics.innerHTML = metricItems.map((item) => `
+        <div class="mini-card">
+            <span>${safeHtml(item.label)}</span>
+            <strong>${safeHtml(item.value)}</strong>
+        </div>
+    `).join('');
+
+    const noteItems = [
+        `Conexao atual do painel: ${realtimeLabel}.`,
+        settings.projectRoot
+            ? `Workspace ligado em ${settings.projectRoot}.`
+            : 'Este projeto ainda nao foi ligado a uma pasta real.',
+        snap.dashboard?.status?.nextFocus
+            ? `Foco monitorado: ${snap.dashboard.status.nextFocus}.`
+            : 'Ainda sem foco dominante vindo do radar.',
+        (warningCount + errorCount)
+            ? `Atencao em ${warningCount + errorCount} sinal(is) de warning/error no historico recente.`
+            : 'Sem warning ou error recentes no historico local.',
+        audio.audioUrl
+            ? `Resumo com audio pronto via ${textOrFallback(audio.provider, 'provider desconhecido')}.`
+            : 'Resumo ainda sem audio pronto para reproducao.'
+    ];
+
+    notes.innerHTML = noteItems.map((item) => `
+        <div class="execution-note">${safeHtml(item)}</div>
+    `).join('');
 }
 
 function renderDigestPanel(snap) {
@@ -1366,7 +1685,9 @@ function renderActiveProject() {
     renderTaskBoardPanel(snap);
     renderGitPanel(snap);
     renderValidationPanel(snap);
+    renderExecutionBoardPanel(snap);
     renderProjectRadar(snap);
+    renderProjectPulsePanel(snap);
     renderDigestPanel(snap);
     renderProjectSummary(snap);
     renderTimelinePanel(snap);

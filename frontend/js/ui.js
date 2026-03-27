@@ -108,34 +108,70 @@ function buildDashboardShell() {
                         <div class="radar-card"><div class="radar-card-title">Saúde operacional</div><div id="radarStats" class="radar-stats"><div class="radar-stat"><div class="radar-stat-label">Tarefas abertas</div><div class="radar-stat-value">0</div></div></div></div>
                     </div>
                 </div>
-                <div class="glass-panel" id="projectSummarySection" style="display:none; flex-direction:column; gap:1rem;">
-                    <div class="panel-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;">
+                <div class="glass-panel project-pulse-panel" id="projectPulsePanel">
+                    <div class="panel-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; margin-bottom:0;">
                         <div>
-                            <h2 style="display:flex; align-items:center; gap:0.5rem; font-size:1.15rem; color: var(--secondary);">
-                                <span id="summaryTitle" style="font-size:1.1rem;">O que mudou hoje</span>
-                            </h2>
-                            <div id="summaryMeta" style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;">Atualizado em: --</div>
+                            <h2>Pulso do Projeto</h2>
+                            <div id="pulseSubtitle" class="search-meta">O Nexus vai desenhar aqui a pressao operacional e o ritmo do projeto.</div>
                         </div>
-                        <div id="audioPlayerContainer" style="display:flex; gap:0.75rem; align-items:center; background: rgba(0,0,0,0.3); padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid var(--border);">
-                            <span id="audioStatusBadge" class="badge" style="background: rgba(255,255,255,0.1); color: var(--text-muted); font-size: 0.65rem;">AGUARDANDO</span>
-                            <button id="btnPlayAudio" class="btn-secondary" style="padding: 0.4rem 0.75rem; display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; border-color: rgba(6, 182, 212, 0.4); color: var(--secondary);" onclick="toggleAudio(event)" disabled>Carregando</button>
+                        <div id="pulseHealthBadge" class="badge badge-health-steady">STEADY</div>
+                    </div>
+                    <div class="pulse-layout">
+                        <div class="pulse-stage">
+                            <div class="pulse-stage-copy">
+                                <div class="pulse-stage-kicker">Mapa operacional</div>
+                                <div id="pulseStageHeadline" class="pulse-stage-headline">Sem leitura consolidada ainda.</div>
+                                <div id="pulseStageSummary" class="pulse-stage-summary">O Nexus vai preencher aqui a leitura principal do fluxo do projeto.</div>
+                            </div>
+                            <div class="pulse-stage-hero">
+                                <div class="pulse-orbit-wrap">
+                                    <svg id="pulseOrbitSvg" class="pulse-orbit-svg" viewBox="0 0 260 260" aria-hidden="true">
+                                        <circle class="pulse-ring-base" cx="130" cy="130" r="92"></circle>
+                                        <circle id="pulseOverallRing" class="pulse-ring pulse-ring-overall" cx="130" cy="130" r="92"></circle>
+                                        <circle class="pulse-ring-base pulse-ring-base-inner" cx="130" cy="130" r="72"></circle>
+                                        <circle id="pulseTaskRing" class="pulse-ring pulse-ring-task" cx="130" cy="130" r="72"></circle>
+                                        <circle class="pulse-ring-base pulse-ring-base-inner" cx="130" cy="130" r="52"></circle>
+                                        <circle id="pulseMilestoneRing" class="pulse-ring pulse-ring-milestone" cx="130" cy="130" r="52"></circle>
+                                        <circle class="pulse-ring-base pulse-ring-base-inner" cx="130" cy="130" r="32"></circle>
+                                        <circle id="pulseCommandRing" class="pulse-ring pulse-ring-command" cx="130" cy="130" r="32"></circle>
+                                    </svg>
+                                    <div class="pulse-core">
+                                        <div id="pulseOverallLabel" class="pulse-core-value">0%</div>
+                                        <div id="pulsePrimarySignal" class="pulse-core-label">Sem leitura ainda</div>
+                                    </div>
+                                </div>
+                                <div id="pulseStageInsights" class="pulse-stage-insights">
+                                    <div class="empty-state">Os sinais-chave do projeto aparecem aqui.</div>
+                                </div>
+                            </div>
+                            <div id="pulseFlowMap" class="pulse-flow-map">
+                                <div class="empty-state">A trilha operacional aparece aqui.</div>
+                            </div>
+                            <div id="pulseLegend" class="pulse-legend">
+                                <div class="empty-state">Sem sinais suficientes para montar o pulso ainda.</div>
+                            </div>
+                        </div>
+                        <div class="pulse-side">
+                            <div class="pulse-side-card">
+                                <div class="radar-card-title">Pressao operacional</div>
+                                <div id="pulsePressureBars" class="pulse-bar-stack">
+                                    <div class="empty-state">Aguardando metricas do projeto.</div>
+                                </div>
+                            </div>
+                            <div class="pulse-side-card">
+                                <div class="radar-card-title">Sinais vivos</div>
+                                <div id="pulseSignals" class="pulse-signal-grid">
+                                    <div class="empty-state">Os sinais do projeto aparecem aqui.</div>
+                                </div>
+                            </div>
+                            <div class="pulse-side-card">
+                                <div class="radar-card-title">Atalhos do cockpit</div>
+                                <div id="pulseTrajectory" class="pulse-trajectory">
+                                    <div class="empty-state">Os atalhos operacionais aparecem aqui.</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div id="summaryContent" style="color:#e4e4e7; line-height:1.6; font-size:0.95rem; display:flex; flex-direction:column; gap:1rem; border-top:1px solid var(--border); padding-top:1rem;"><div style="padding:1rem; text-align:center; color:var(--text-muted); font-style:italic;">Carregando resumo do projeto...</div></div>
-                    <div class="digest-strip">
-                        <div class="digest-box">
-                            <div class="radar-card-title">Resumo do dia</div>
-                            <div id="digestSummary" class="hub-copy">Nenhum digest carregado ainda.</div>
-                        </div>
-                        <div class="digest-box">
-                            <div class="radar-card-title">Mudanças recentes</div>
-                            <div id="digestTodayList" class="action-stack"><div class="empty-state">Sem itens no digest.</div></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="glass-panel project-timeline-panel" id="projectTimelinePanel">
-                    <div class="panel-header"><h2>Timeline real do projeto</h2></div>
-                    <div id="projectTimeline" class="timeline"><div class="empty-state">Carregando eventos da timeline...</div></div>
                 </div>
             </div>
             <div class="panel-col">
@@ -157,13 +193,6 @@ function buildDashboardShell() {
                         <button class="btn-primary full-width" type="submit">Enviar comando</button>
                     </form>
                 </div>
-                <div class="glass-panel" id="bootstrapKitPanel">
-                    <div class="panel-header"><h2>Kit de Outra Máquina</h2></div>
-                    <div id="bootstrapKitMeta" class="hub-copy">Carregando prompts e documentação canônica...</div>
-                    <div id="bootstrapKitList" class="bootstrap-kit-stack" style="margin-top: 1rem;">
-                        <div class="empty-state">Os arquivos de bootstrap vão aparecer aqui.</div>
-                    </div>
-                </div>
                 <div class="glass-panel" id="queuePanel">
                     <div class="panel-header"><h2>Fila global</h2></div>
                     <div class="queue-stats" id="queueStatsBox">--</div>
@@ -175,8 +204,55 @@ function buildDashboardShell() {
                     </div>
                     <div id="auditContent" style="font-size: 0.85rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;"></div>
                 </div>
+                <div class="glass-panel execution-board-panel" id="executionBoardPanel">
+                    <div class="panel-header">
+                        <h2>Execucao ao vivo</h2>
+                    </div>
+                    <div id="executionBoardCopy" class="hub-copy">O Nexus vai consolidar aqui o estado vivo de execucao do projeto.</div>
+                    <div id="executionBoardMetrics" class="execution-board-metrics">
+                        <div class="mini-card"><span>Canal</span><strong>--</strong></div>
+                        <div class="mini-card"><span>Fila</span><strong>0</strong></div>
+                        <div class="mini-card"><span>Logs</span><strong>0</strong></div>
+                        <div class="mini-card"><span>Workspace</span><strong>--</strong></div>
+                    </div>
+                    <div id="executionBoardNotes" class="action-stack">
+                        <div class="empty-state">Os sinais vivos do projeto aparecem aqui.</div>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <section class="summary-timeline-row">
+            <div class="glass-panel" id="projectSummarySection" style="display:none; flex-direction:column; gap:1rem;">
+                <div class="panel-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;">
+                    <div>
+                        <h2 style="display:flex; align-items:center; gap:0.5rem; font-size:1.15rem; color: var(--secondary);">
+                            <span id="summaryTitle" style="font-size:1.1rem;">O que mudou hoje</span>
+                        </h2>
+                        <div id="summaryMeta" style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;">Atualizado em: --</div>
+                    </div>
+                    <div id="audioPlayerContainer" style="display:flex; gap:0.75rem; align-items:center; background: rgba(0,0,0,0.3); padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid var(--border);">
+                        <span id="audioStatusBadge" class="badge" style="background: rgba(255,255,255,0.1); color: var(--text-muted); font-size: 0.65rem;">AGUARDANDO</span>
+                        <button id="btnPlayAudio" class="btn-secondary" style="padding: 0.4rem 0.75rem; display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; border-color: rgba(6, 182, 212, 0.4); color: var(--secondary);" onclick="toggleAudio(event)" disabled>Carregando</button>
+                    </div>
+                </div>
+                <div id="summaryContent" style="color:#e4e4e7; line-height:1.6; font-size:0.95rem; display:flex; flex-direction:column; gap:1rem; border-top:1px solid var(--border); padding-top:1rem;"><div style="padding:1rem; text-align:center; color:var(--text-muted); font-style:italic;">Carregando resumo do projeto...</div></div>
+                <div class="digest-strip">
+                    <div class="digest-box">
+                        <div class="radar-card-title">Resumo do dia</div>
+                        <div id="digestSummary" class="hub-copy">Nenhum digest carregado ainda.</div>
+                    </div>
+                    <div class="digest-box">
+                        <div class="radar-card-title">Mudanças recentes</div>
+                        <div id="digestTodayList" class="action-stack"><div class="empty-state">Sem itens no digest.</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-panel project-timeline-panel" id="projectTimelinePanel">
+                <div class="panel-header"><h2>Timeline real do projeto</h2></div>
+                <div id="projectTimeline" class="timeline"><div class="empty-state">Carregando eventos da timeline...</div></div>
+            </div>
+        </section>
 
         <section class="glass-panel workspace-rail-panel" id="filesRailPanel" style="margin-top: 1.5rem; border-color: rgba(6, 182, 212, 0.28); background: rgba(18, 18, 20, 0.75);">
             <div class="commands-rail-copy">
@@ -225,6 +301,101 @@ function buildDashboardShell() {
                 </div>
             </div>
             <div class="command-list" id="commandsList"></div>
+        </section>
+
+        <section class="glass-panel about-panel" id="aboutNexusPanel" style="margin-top: 1.5rem;">
+            <div class="about-hero">
+                <div>
+                    <div class="eyebrow">Quem Somos</div>
+                    <h2>O Nexus é a ponte operacional entre Codex e Antigravity</h2>
+                    <p class="about-lead">
+                        O Nexus existe para transformar vários projetos em um único cockpit de execução.
+                        Ele organiza contexto, tarefas, logs, validação, handoffs e setup entre agentes para que você
+                        trabalhe por projeto no painel sem reconfigurar a plataforma toda vez.
+                    </p>
+                </div>
+                <div class="about-pill-group">
+                    <span class="badge badge-state-active">Nexus Core</span>
+                    <span class="badge badge-health-steady">Multi-projetos</span>
+                    <span class="badge badge-health-steady">Codex + Antigravity</span>
+                </div>
+            </div>
+
+            <div class="about-grid">
+                <article class="about-card">
+                    <h3>Para que ele serve</h3>
+                    <ul class="about-list">
+                        <li>centralizar vários projetos em um único painel</li>
+                        <li>trocar o projeto ativo e levar junto tarefas, logs, radar, resumo e arquivos</li>
+                        <li>delegar backend, integração e validação para o Codex</li>
+                        <li>delegar frontend, UX e acabamento visual para o Antigravity</li>
+                        <li>manter um histórico operacional claro do que foi pedido, executado e validado</li>
+                    </ul>
+                </article>
+
+                <article class="about-card">
+                    <h3>Como usar no dia a dia</h3>
+                    <ol class="about-list ordered">
+                        <li>selecione um projeto na lateral do painel</li>
+                        <li>confirme se esse projeto está ligado a uma pasta real com <strong>Ligar Pasta</strong> ou <strong>Reindexar Workspace</strong></li>
+                        <li>use agenda, radar, timeline, resumo e workspace para entender o foco atual</li>
+                        <li>dispare tarefas pelo painel ou por <strong>Enviar para o agente</strong> nas pendências</li>
+                        <li>acompanhe logs, timeline e comandos recentes para validar o fluxo</li>
+                    </ol>
+                </article>
+            </div>
+
+            <div class="about-grid">
+                <article class="about-card">
+                    <h3>Regra principal do Nexus</h3>
+                    <p class="about-copy">
+                        A pasta <strong>teste integração</strong> é a casa fixa da plataforma Nexus.
+                        A troca real de contexto acontece pelo projeto selecionado no painel. Quando um projeto tem
+                        <code>projectRoot</code> configurado, o Nexus usa esse root para leitura, bridge, jobs e handoffs.
+                    </p>
+                    <p class="about-copy">
+                        Na prática, a única alteração manual que você precisa fazer fora do painel é apontar Codex e
+                        Antigravity para o projeto certo quando quiser trabalhar diretamente neles.
+                    </p>
+                </article>
+
+                <article class="about-card">
+                    <h3>Tutorial rápido: abrir a porta CDP do Antigravity</h3>
+                    <p class="about-copy">
+                        Para o Nexus enviar prompts automaticamente ao Antigravity, a instância dele precisa abrir com a
+                        porta CDP habilitada.
+                    </p>
+                    <ol class="about-list ordered">
+                        <li>feche o Antigravity, se ele estiver aberto</li>
+                        <li>localize o atalho que você usa para abrir o Antigravity</li>
+                        <li>clique com o botão direito no atalho e abra <strong>Propriedades</strong></li>
+                        <li>na caixa <strong>Destino</strong>, mantenha o caminho atual e adicione no final:</li>
+                    </ol>
+                    <div class="about-code">--remote-debugging-port=9222</div>
+                    <ol class="about-list ordered" start="5">
+                        <li>salve as propriedades do atalho</li>
+                        <li>abra o Antigravity por esse atalho ajustado</li>
+                        <li>volte ao Nexus e teste um envio para o Antigravity</li>
+                    </ol>
+                    <p class="about-copy subtle">
+                        Quando isso estiver certo, o Nexus consegue falar com o CDP em <code>127.0.0.1:9222</code> para
+                        injetar prompts, acompanhar a sessão e melhorar o fluxo entre os agentes.
+                    </p>
+                </article>
+            </div>
+
+            <div class="about-kit">
+                <div class="about-kit-header">
+                    <div>
+                        <div class="eyebrow">Kit de Outra Máquina</div>
+                        <h3>Prompts-base e documentação canônica</h3>
+                    </div>
+                    <div id="bootstrapKitMeta" class="about-kit-copy">Carregando prompts e documentação canônica...</div>
+                </div>
+                <div id="bootstrapKitList" class="bootstrap-kit-stack" style="margin-top: 1rem;">
+                    <div class="empty-state">Os arquivos de bootstrap vão aparecer aqui.</div>
+                </div>
+            </div>
         </section>
     `;
     dashboardShellBuilt = true;
